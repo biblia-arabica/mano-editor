@@ -1,3 +1,4 @@
+// LEGACY — superseded by JS/ba/*, kept for reference. Not loaded by any page.
 let xmlPreviewCM = null;
 
 let manuscriptCounter = 0;

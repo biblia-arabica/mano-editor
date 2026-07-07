@@ -76,12 +76,14 @@
         <div class="offcanvas-body">
           <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
             <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="resources.html">Resources</a></li>
-            <li class="nav-item"><a class="nav-link" href="editor.html">Metadata Editor</a></li>
-            <li class="nav-item"><a class="nav-link" href="collection.html">Metadata Collection</a></li>
-            <li class="nav-item"><a class="nav-link" href="viewer.html">Transcription Viewer</a></li>
+            <li class="nav-item"><a class="nav-link" href="editor.html">Manuscript Editor</a></li>
+            <li class="nav-item"><a class="nav-link" href="person-editor.html">Person Editor</a></li>
+            <li class="nav-item"><a class="nav-link" href="place-editor.html">Place Editor</a></li>
+            <li class="nav-item"><a class="nav-link" href="work-editor.html">Work Editor</a></li>
+            <li class="nav-item"><a class="nav-link" href="collection.html">Data Collection</a></li>
             <li class="nav-item"><a class="nav-link active" href="documentation.html">Documentation</a></li>
             <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+            <li class="nav-item"><a class="nav-link" href="resources.html">Resources</a></li>
             <hr class="my-3">
             <div class="text-center">
                 <h6 class="mb-3">Participate in shaping the future of &lt;MANO&gt;</h6>
@@ -102,7 +104,7 @@
     <div class="doc-intro">
       
       <p style="text-align: justify;">
-        <span class="mano">&lt;MANO&gt; - Manuscripts Online</span> is a platform designed for teaching and learning digital manuscript studies. It provides a lightweight environment where users can explore TEI-XML transcriptions, create manuscript metadata, and share teaching materials, without requiring installations, accounts, or institutional infrastructure. &lt;MANO&gt; is organized into a set of modular tools that support complementary aspects of manuscript description and transcription work. Each module can be used independently or as part of an integrated teaching workflow.
+        <span class="mano">&lt;MANO&gt; - Manuscripts Online</span> is a platform designed for teaching and learning digital manuscript studies. It provides a lightweight environment where users can create TEI records for manuscripts, persons, places, and works, browse them in a shared data collection, and share teaching materials, without requiring installations, accounts, or institutional infrastructure. &lt;MANO&gt; is organized into a set of modular tools that support complementary aspects of manuscript description work. Each module can be used independently or as part of an integrated teaching workflow.
       </p>
       <div class="callout mb-4">
         <strong>How to cite&nbsp;&lt;MANO&gt;.</strong> Cite the platform as: <em>MANO – Manuscripts Online</em>, <span class="mono">https://mano-project.github.io</span>.
@@ -123,7 +125,7 @@
         <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="heading1" data-bs-parent="#docAccordion">
           <div class="accordion-body">
             <p style="text-align: justify;">
-              &lt;MANO&gt; is a platform for working with digital manuscript materials directly in the browser. It brings together tools for viewing TEI-XML transcriptions, creating manuscript descriptions, consulting community-contributed metadata, and accessing teaching resources. Because everything runs client-side, users can work with their own files locally, and nothing is stored on a server unless they choose to publish it in a GitHub repository. The platform is intended for both teaching and introductory research contexts. Students can learn TEI, explore manuscript structures, and create descriptions without needing specialised software, while instructors can assemble and share course materials through a simple static repository.
+              &lt;MANO&gt; is a platform for working with digital manuscript materials directly in the browser. It brings together tools for creating TEI records, browsing the shared data collection, and accessing teaching resources. Because everything runs client-side, users can work with their own files locally, and nothing is stored on a server unless they choose to publish it in a GitHub repository. The platform is intended for both teaching and introductory research contexts. Students can learn TEI, explore manuscript structures, and create descriptions without needing specialised software, while instructors can assemble and share course materials through a simple static repository.
             </p>
             <p>
               It was created to address a key challenge in manuscript and TEI pedagogy: many existing tools rely on complex infrastructures, licensed editors, or institutional hosting. These environments are powerful but often inaccessible to students, early-career researchers, or instructors working in low-resource or short-term teaching contexts. &lt;MANO&gt; lowers these barriers by offering a lightweight, sustainable alternative that runs entirely in the browser.
@@ -135,7 +137,7 @@
               <li><strong>Serverless and sustainable.</strong> The platform avoids databases, backends, or institutional servers. Static hosting on GitHub ensures long-term accessibility with minimal maintenance.</li>
               <li><strong>Lightweight and modular.</strong> Each component functions independently, allowing instructors to use only what they need.</li>
               <li><strong>Pedagogically driven.</strong> The interface and workflows are designed to support teaching scenarios: introducing TEI, exploring manuscript structure, and guiding students through description tasks.</li>
-              <li><strong>Open and reusable.</strong> All materials—code, documentation, and example files—are openly available. Through GitHub, users can fork, adapt, and contribute to shared collections of metadata and transcriptions.</li>
+              <li><strong>Open and reusable.</strong> All materials—code, documentation, and example files—are openly available. Through GitHub, users can fork, adapt, and contribute to the shared collection of TEI records.</li>
             </ul>
           </div>
         </div>
@@ -153,12 +155,11 @@
             <p>&lt;MANO&gt; is organized into a set of independent, browser-based tools that together support common tasks in digital manuscript work:</p>
             <ul>
               <li><a href="resources.html">Resources</a>: Displays teaching materials hosted in a GitHub repository. Instructors upload resources; learners download them directly from the interface.</li>
-              <li><a href="editor.html">Metadata Editor</a>: A form-based environment for creating structured manuscript descriptions. Users can enter cataloging information, generate JSON/TEI outputs, and download their results.</li>
-              <li><a href="collection.html">Metadata Collection</a>: Displays manuscript descriptions contributed to a shared GitHub repository, allowing learners and instructors to browse examples produced within a course or community.</li>
-              <li><a href="viewer.html">Transcription Viewer</a>: A viewer for TEI-XML transcriptions, offering synchronized panels for the XML code, a readable HTML rendering, and—when present—manuscript images linked to the transcription. Supports basic editing and file export.</li>
+              <li><strong>Editors</strong> — <a href="editor.html">Manuscript</a>, <a href="person-editor.html">Person</a>, <a href="place-editor.html">Place</a>, and <a href="work-editor.html">Work</a>: form-based environments for creating structured TEI records without writing XML. Each editor exports a single TEI-XML file.</li>
+              <li><a href="collection.html">Data Collection</a>: Browses the project's TEI records — manuscripts, persons, places, and works — rendering each record natively from its TEI file directly in the browser.</li>
             </ul> 
             <p class="text-center"><img src="images/structure.png" alt="Structure of MANO" width="40%"></p>
-            <p>Each component works autonomously, but together they form a complete workflow for transcription, description, visualization, and sharing.</p>
+            <p>Each component works autonomously, but together they form a complete workflow for description, browsing, and sharing.</p>
           </div>
         </div>
       </div>
@@ -246,35 +247,36 @@
         </div>
       </div>
 
-      <!-- 4. Metadata Editor -->
+      <!-- 4. Editors -->
       <div class="accordion-item" id="sec4">
         <h2 class="accordion-header" id="heading4">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
-            Metadata Editor
+            Editors
           </button>
         </h2>
         <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4" data-bs-parent="#docAccordion">
           <div class="accordion-body">
             <div>
               <h5>What it is</h5>
-              <p>The <a href="editor.html">Metadata Editor</a> is a structured environment for creating manuscript descriptions following the <strong>TEI P5 <a href="https://www.tei-c.org/release/doc/tei-p5-doc/de/html/MS.html" target="_blank">Manuscript Description</a> module</strong>. It translates the TEI manuscript description model into an intuitive, form-based interface, allowing users to produce TEI-compatible metadata without writing XML directly. The editor supports both traditional cataloging categories and lightweight Linked Open Data (LOD) integration.</p>
-            </div>  
+              <p>&lt;MANO&gt; provides four form-based TEI editors, one per record type: the <a href="editor.html">Manuscript Editor</a>, <a href="person-editor.html">Person Editor</a>, <a href="place-editor.html">Place Editor</a>, and <a href="work-editor.html">Work Editor</a>. Each turns a TEI model into an intuitive interface, letting users produce TEI-conformant records without writing XML directly, with lightweight Linked Open Data (LOD) integration. All four share the same <strong>record-metadata block</strong> (Record ID, Record title, Editor, Status, and Change note) and export a single TEI-XML file.</p>
+              <p>The Manuscript Editor follows the <strong>TEI P5 <a href="https://www.tei-c.org/release/doc/tei-p5-doc/de/html/MS.html" target="_blank">Manuscript Description</a> module</strong>; the walk-through below uses it as the example. The Person, Place, and Work editors work the same way over their own field sets.</p>
+            </div>
             
             <div class="mt-5">
               <h5>When to use it</h5>
-              <p>Use the Metadata Editor when:</p>
+              <p>Use the editors when:</p>
                 <ul>
                   <li>learning or teaching the structure of TEI manuscript descriptions</li>
                   <li>producing manuscript metadata for coursework, workshops, or small projects</li>
                   <li>preparing TEI-conformant descriptions without writing XML</li>
-                  <li>contributing descriptions to the shared Metadata Collection</li>
+                  <li>contributing records to the shared <a href="collection.html">Data Collection</a></li>
                 </ul>
             </div>
             
             <div class="mt-5">
               <h5>How it works</h5>
               <p>
-                The Metadata Editor is designed to make the TEI Manuscript Description module accessible to users without technical
+                The Manuscript Editor is designed to make the TEI Manuscript Description module accessible to users without technical
                 XML knowledge. All fields correspond to TEI elements, and the structure of the form helps ensure that each description
                 is valid, complete, and standardised. Multiple manuscripts can be described in the same session using the
                 <strong>Add Manuscript</strong> button.
@@ -295,15 +297,16 @@
 
               <p class="text-center"><img src="images/editor.png" alt="Editor interface" width="70%"></p>
             
-              <h6 class="mt-4">File description</h6>
-              <p>This section records basic information about the description itself rather than the manuscript:</p>
+              <h6 class="mt-4">Record metadata</h6>
+              <p>The first block is shared by all four editors and records information about the record itself rather than its subject:</p>
               <ul>
-                <li>file name,</li>
-                <li>language of data entry,</li>
-                <li>license,</li>
-                <li>person(s) responsible for data entry, including name, surname, external identifier, and affiliation.</li>
+                <li><strong>Record ID</strong> — the numeric id; combined with the type it forms the record URI shown beneath the field,</li>
+                <li><strong>Record title</strong> — the headword/label, written to <code>&lt;title level="a"&gt;</code>,</li>
+                <li><strong>Editor</strong> — the responsible team member, chosen from <code>BA.config.editors</code>,</li>
+                <li><strong>Status</strong> — <code>unpublished</code>, <code>draft</code>, or <code>published</code>,</li>
+                <li><strong>Change note</strong> — a short description of the edit, appended to the record's revision history as a new <code>&lt;change&gt;</code> element.</li>
               </ul>
-              <p>It corresponds to the header elements that describe the metadata record itself (modelled on TEI <code>&lt;fileDesc&gt;</code>).</p>
+              <p>These fields populate the shared TEI <code>&lt;teiHeader&gt;</code>; the record URI is also written to <code>publicationStmt/idno[@type="URI"]</code>. A reload button next to the Record ID refreshes the authority index (see <em>Customization → Data and index lifecycle</em>).</p>
 
               <h6 class="mt-4">Identification</h6>
               <p>The identification section gathers core cataloging information that uniquely identifies the manuscript:</p>
@@ -391,9 +394,9 @@
               <p>
                 The system let the users to:</p>
                 <ul>
-                  <li><strong>Upload XML or JSON</strong>
+                  <li><strong>Upload XML</strong>
                     <p>Users may also upload an
-                existing manuscript description created earlier in &lt;MANO&gt;. Previously downloaded XML or JSON files can be
+                existing record created earlier in &lt;MANO&gt;. A previously downloaded TEI-XML file can be
                 re-uploaded into the editor, allowing records to be inspected, modified, or expanded at any time.</p></li>
                   <li><strong>Load sample</strong>
                     <p>It loads a complete, ready-made manuscript description that illustrates
@@ -407,43 +410,35 @@
                 <li>
                   <strong>Preview</strong> 
                   <p>Generates a live TEI-XML snippet that helps learners see and understand the TEI structure behind the form.</p>
-                  <p class="text-center"><img src="images/preview.png" alt="Preview window in Metadata Editor" width="50%"></p>
+                  <p class="text-center"><img src="images/preview.png" alt="Preview window in the Manuscript Editor" width="50%"></p>
                 </li>
                 <li>
                   <strong>Validation</strong> 
                   <p>Runs validation checks to ensure required elements are present, values are well-formed,
                   identifiers are not duplicated, and referenced items are not already in the list. This helps avoid inconsistencies
-                  when contributing metadata to the shared collection. Validation distinguishes between:</p>
+                  when contributing records to the shared Data Collection. Validation distinguishes between:</p>
                   <ul>
                     <li><strong>Mandatory issues</strong>: errors that must be corrected before a download is permitted,</li>
                     <li><strong>Optional checks</strong>: warnings about potential inconsistencies that do not prevent downloading.</li>
                   </ul>
-                  <p>The validation ruleset used in the Metadata Editor is accessible <a href="https://github.com/mano-project/mano-project.github.io/blob/main/JS/validation.js" target="_blank">here</a>.</p>
+                  <p>The validation ruleset lives in <code>JS/ba/validate.js</code>.</p>
                 </li>
               </ul>
             </div>
 
             <div class="mt-5">
               <h5>Output</h5>
-              <p>The editor enables the user to download:</p>
-              <ul>
-                <li><strong>TEI-XML</strong> file, ready for integration into larger TEI files.</li>
-                <li><strong>JSON</strong> file, suitable for the Metadata Collection.</li>
-              </ul>
-              <p>
-                Users can download their files, reuse them in their own projects, or contribute them to the Metadata Collection
-                through <a href="https://github.com/mano-project/mano-metadata" target="_blank">GitHub</a>.
-              </p>
+              <p>Each editor produces a single <strong>TEI-XML</strong> file named <code>{id}.xml</code>, ready to be committed to the record type's folder under <code>data/</code> (<code>data/manuscripts/</code>, <code>data/persons/</code>, <code>data/places/</code>, or <code>data/works/</code>). Once committed, the record is picked up by the authority index and appears in the <a href="collection.html">Data Collection</a> (see <em>Customization → Data and index lifecycle</em>).</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 5. Metadata Collection -->
+      <!-- 5. Data Collection -->
       <div class="accordion-item" id="sec5">
         <h2 class="accordion-header" id="heading5">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
-            Metadata Collection
+            Data Collection
           </button>
         </h2>
         <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="heading5" data-bs-parent="#docAccordion">
@@ -451,165 +446,49 @@
             <div>
               <h5>What it is</h5>
               <p>
-                The <a href="collection.html">Metadata Collection</a> is the area of the platform where all manuscript descriptions 
-                created with the <strong>Metadata Editor</strong> are gathered and published. 
-                It functions as a shared digital archive that continually grows as users contribute new records.  
-                Each description appears as an entry in the main table, where users can browse, inspect, 
-                and download the records.
+                The <a href="collection.html">Data Collection</a> is where the project's TEI records are published and browsed.
+                A landing page presents four cards &mdash; <a href="collection-manuscripts.html">Manuscripts</a>,
+                <a href="collection-persons.html">Persons</a>, <a href="collection-places.html">Places</a>, and
+                <a href="collection-works.html">Works</a> &mdash; each showing a live record count. Every record is rendered
+                natively from its TEI file; there are no JSON intermediates.
               </p>
             </div>
 
             <div class="mt-5">
               <h5>When to use it</h5>
               <ul>
-                <li>to explore manuscript descriptions created through the Metadata Editor,</li>
-                <li>to browse manuscripts by origin, material, language, date, or other filters,</li>
-                <li>to view available digitizations of manuscripts (when a link is provided),</li>
-                <li>to consult a detailed record by opening the <em>Full Record</em> view,</li>
-                <li>to download descriptions in XML, JSON, or PDF format.</li>
+                <li>to browse the records of a given type in a filterable list,</li>
+                <li>to open a record's full view, rendered directly from its TEI,</li>
+                <li>to follow cross-links between records (for example, from a person's birth place to the place record),</li>
+                <li>to reach a specific record directly through a <code>?id=</code> deep link.</li>
               </ul>
             </div>
 
             <div class="mt-5">
               <h5>How it works</h5>
               <p>
-                The Metadata Collection reads all description files directly from the public GitHub repository 
-                <a href="https://github.com/mano-project/mano-metadata" target="_blank">mano-metadata</a>. 
-                There is no database: the platform loads, interprets, and displays the JSON files directly from GitHub.
-                This design ensures transparency and long-term sustainability, as the metadata remain openly accessible 
-                in the repository.
+                Each per-type page loads the authority index <code>index/index-{type}.json</code> and lists its records.
+                Clicking a row fetches the TEI file referenced by the index (under <code>data/{type}/</code>), parses it in the
+                browser, and renders the full record &mdash; a shared header (record URI, title, status, change history) plus the
+                type-specific fields. Cross-record references resolve against the index: when a referenced record exists it
+                becomes an internal link, otherwise the raw URI is shown as an external link.
               </p>
               <p>
-                The main table allows users to:
+                There is no database and no JSON record store: the pages read the same <code>index/*.json</code> and
+                <code>data/**</code> TEI files that the editors write. Indexes are cached in the browser for one hour; the
+                reload button on the editor pages clears that cache (see <em>Customization &rarr; Data and index lifecycle</em>).
               </p>
-              <ul>
-                <li>search manuscripts by keyword,</li>
-                <li>filter records by repository, date of origin, material, script, language, provenance, and more,</li>
-                <li>open external digitizations when available,</li>
-                <li>expand a full structured view of the description using the <em>Full Record</em> button,</li>
-                <li>download metadata in <strong>JSON</strong>, <strong>TEI-XML</strong>, or <strong>PDF</strong> format.</li>
-              </ul>
-
-              <p class="text-center"><img src="images/collection.png" alt="Metadata collection interface" width="70%"></p>
-
-              <h6 class="mt-4">Maps: Current Location and Place of Origin</h6>
-              <p>
-                All metadata in the Collection are automatically visualised on two interactive <a href="maps.html">maps</a>:
-              </p>
-              <ul>
-                <li><strong>Current Location Map</strong> showing where manuscripts are presently held,</li>
-                <li><strong>Origin Location Map</strong> showing where manuscripts were produced.</li>
-              </ul>
-              <p>
-                Each marker on the map represents a place connected to one or more manuscripts. 
-                Clicking a marker displays a list of all manuscripts associated with that location, 
-                with direct links back to the corresponding entries in the main table.
-              </p>
-
-              <p class="text-center"><img src="images/maps.png" alt="Maps interface" width="70%"></p>
+              <p class="text-center"><img src="images/collection.png" alt="Data Collection interface" width="70%"></p>
             </div>
 
             <div class="mt-5">
-              <h5>How to contribute your descriptions</h5>
+              <h5>How to contribute records</h5>
               <p>
-                After creating a manuscript description in the 
-                Metadata Editor, users download the record in <strong>JSON format</strong> and upload it to the 
-                GitHub repository:
-                <a href="https://github.com/mano-project/mano-metadata" target="_blank">https://github.com/mano-project/mano-metadata</a>.
-              </p>
-              <p>By uploading metadata to this repository, contributors agree to share them under the <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a> license. Materials may be reused for non-commercial educational purposes, provided proper attribution is given.  </p>
-              <p>A detailed, step-by-step user guide with FAQs and additional instructions for uploading teaching materials is available in the <a href="https://github.com/mano-project/mano-metadata" target="_blank">GitHub repository</a>.</p>
-              
-              <ol>
-                <li>Create the manuscript description using the Metadata Editor.</li>
-                <li>Download the resulting JSON file.</li>
-                <li>Log into GitHub with a free account.</li>
-                <li>Navigate to the <a href="https://github.com/mano-project/mano-metadata" target="_blank">mano-metadata</a> repository.</li>
-                <li>Upload the JSON file to the <code>data</code> folder.</li>
-                <li>Commit the changes.</li>
-              </ol>
-              <p>
-                Once the JSON file is stored in the repository, the platform automatically detects it and displays 
-                the new description in the Collection.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 6. Transcription Viewer -->
-      <div class="accordion-item" id="sec6">
-        <h2 class="accordion-header" id="heading6">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapse6">
-            Transcription Viewer
-          </button>
-        </h2>
-        <div id="collapse6" class="accordion-collapse collapse" aria-labelledby="heading6" data-bs-parent="#docAccordion">
-          <div class="accordion-body">
-            <div>
-              <h5>What it is</h5>
-              <p>
-                The <a href="viewer.html">Transcription Viewer</a> is designed to make TEI-XML transcriptions easy to read and explore,
-                even for users without prior TEI experience or without access to specialised XML editors such as Oxygen.
-                The Viewer transforms TEI-XML into a clear, readable interface and allows users to inspect, edit, and
-                download transcription files directly in the browser.
-              </p>
-            </div>
-
-            <div class="mt-5">
-              <h5>When to use it</h5>
-              <ul>
-                <li>to upload and view TEI-XML transcriptions in a structured way,</li>
-                <li>to explore or teach TEI markup using a visual, browser-based tool,</li>
-                <li>to edit the XML code and preview the results immediately,</li>
-                <li>to work with example material using the built-in <em>Load sample</em> function.</li>
-              </ul>
-            </div>
-
-            <div class="mt-5">
-              <h5>How it works</h5>
-              <p>
-                The interface consists of three synchronised panels:
-              </p>
-              <ul>
-                <li><strong>XML</strong>: shows the transcription as editable XML,</li>
-                <li><strong>Transcription</strong>: provide a readable visualisation of the transcription,</li>
-                <li><strong>Digitized Image</strong>: displays images, when the link is available.</li>
-              </ul>
-
-              <p class="text-center"><img src="images/viewer.png" alt="Transcription Viewr interface" width="70%"></p>
-
-              <h6 class="mt-4">Upload your transcription or Load sample</h6>
-              <p>Users can add their own transcription by clicking <strong>Choose file</strong> and selecting a TEI-XML file 
-                from their computer. The file is read directly in the browser, and the three panels update automatically.
-              </p>
-              <p>The <strong>Load sample</strong> button provides an example transcription for users who want to experiment
-                with the tool or understand its functionality.</p>
-
-              <h6 class="mt-4">Page navigation</h6>
-              <p>When a TEI-XML file is uploaded, the system automatically reads the XML structure and converts it into
-                formatted, readable text. If the transcription includes page breaks (<code>&lt;pb&gt;</code>), the platform automatically generates a page navigation system.</p>
-
-              <h6 class="mt-4">Facsimile synchronisation</h6>
-              <p>When the XML includes direct links to digitised images, the corresponding facsimile appears in the
-                right-hand panel. The image viewer supports zoom controls, and clicking through the transcription updates
-                the displayed image accordingly. If no image link is provided in the XML, this panel remains empty.
-              </p>
-
-              <h6 class="mt-4">Editing and updating the transcription</h6>
-              <p>The XML code can be edited directly within the Viewer. After making changes, users can click
-                <strong>Update Preview</strong> to regenerate the rendered text and refresh image synchronisation.
-                The updated transcription can then be downloaded as a new TEI-XML file.
-              </p>
-
-              <h6 class="mt-4">Convert PAGE-XML into TEI-XML</h6>
-              <p>
-                &lt;MANO&gt; includes a dedicated <a href="converter.html">conversion tool</a> that transforms one or more <strong>PAGE-XML</strong> files into a 
-                unified <strong>TEI-XML</strong> transcription. This tool is intended for situations where HTR/OCR software 
-                exports PAGE-XML instead of TEI. Users can upload multiple PAGE files, 
-                which the tool merges into a single TEI document containing page breaks, region ordering, and reading text. 
-                The resulting TEI file can be downloaded and opened in the Transcription Viewer for further inspection, 
-                editing, and alignment with images.
+                Create a record in the matching editor, download its <strong>TEI-XML</strong> file, and add it to the
+                repository under <code>data/{manuscripts|persons|places|works}/</code> as <code>{id}.xml</code>. The per-type
+                pages carry a <em>Contribute to Collection</em> button that links straight to the right folder once
+                <code>BA.config.repoUrl</code> is set. After the file is committed, the authority index is rebuilt (manually
+                or by the GitHub Action) and the record appears in the Collection.
               </p>
             </div>
           </div>
@@ -636,7 +515,7 @@
                <p>
                 This architecture is designed to remove technical barriers in teaching contexts: 
                 no installation, no licenses, and no institutional hosting are required. 
-                Learners can immediately begin working with manuscript descriptions and transcriptions, 
+                Learners can immediately begin creating manuscript, person, place, and work records,
                 while instructors can reuse or contribute materials with minimal technical setup.
               </p>
             </div>
@@ -644,20 +523,18 @@
             <div class="mt-5">
               <h5>GitHub-Based Ecosystem</h5>
               <p>
-                The platform uses GitHub both as a <strong>hosting environment</strong> (via GitHub Pages) 
-                and as a <strong>storage layer</strong> for shared materials. 
-                It consists of three standalone repositories:
+                The platform uses GitHub both as a <strong>hosting environment</strong> (via GitHub Pages)
+                and as a <strong>storage layer</strong> for its files:
               </p>
               <ul>
-                <li><a href="https://github.com/mano-project/mano-project.github.io" target="_blank">mano-project</a>: application code, documentation, and static assets,</li>
-                <li><a href="https://github.com/mano-project/mano-resources" target="_blank">mano-resources</a>: teaching materials contributed by instructors,</li>
-                <li><a href="https://github.com/mano-project/mano-metadata" target="_blank">mano-metadata</a>: user-contributed manuscript descriptions in JSON.</li>
+                <li><strong>Application code, documentation, and static assets</strong> live in this repository.</li>
+                <li><strong>TEI records</strong> live in this repository under <code>data/{manuscripts|persons|places|works}/</code> as one <code>{id}.xml</code> file each, with a generated authority index in <code>index/*.json</code>.</li>
+                <li><a href="https://github.com/mano-project/mano-resources" target="_blank">mano-resources</a>: teaching materials contributed by instructors.</li>
               </ul>
               <p>
-                Data is retrieved at runtime using the <strong>GitHub REST API</strong>. 
-                The application reads repository contents (teaching materials, JSON metadata records) directly in the browser 
-                without any intermediary service. This serverless architecture simplifies deployment and ensures long-term transparency:
-                all data remains visible, versioned, and accessible in the repositories themselves.
+                Records and indexes are plain static files fetched directly in the browser — no backend, no database, and no
+                intermediary service. This serverless architecture simplifies deployment and ensures long-term transparency:
+                all data remains visible, versioned, and accessible in the repository itself.
               </p>             
             </div> 
 
@@ -671,10 +548,120 @@
                 <li><strong>OpenLibrary API:</strong> used for data in literature references.</li>
               </ul>             
               <p>
-                Selected entities contribute both a human-readable label and a stable URI. 
-                These identifiers are included in the exported JSON and TEI-XML manuscrip description, 
+                Selected entities contribute both a human-readable label and a stable URI.
+                These identifiers are included in the exported TEI-XML record,
                 improving interoperability and aligning the records with broader cultural heritage datasets.
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Customization -->
+      <div class="accordion-item" id="sec8">
+        <h2 class="accordion-header" id="heading8">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8" aria-expanded="false" aria-controls="collapse8">
+            Customization
+          </button>
+        </h2>
+        <div id="collapse8" class="accordion-collapse collapse" aria-labelledby="heading8" data-bs-parent="#docAccordion">
+          <div class="accordion-body">
+            <p>This section deals with extending the four TEI editors and the Data Collection. All paths are relative to the repository root.</p>
+
+            <div>
+              <h5>Adding a team member</h5>
+              <p>Team members are defined once in <code>BA.config.editors</code> (<code>JS/ba/config.js</code>). Append an entry:</p>
+              <ul>
+                <li><code>id</code> — a short xml:id (e.g. <code>mmoliere</code>),</li>
+                <li><code>name</code> — the display name,</li>
+                <li><code>role</code> — <code>general</code> or <code>contributor</code>,</li>
+                <li><code>refs</code> — an array of authority URLs (ORCID, VIAF, and/or a staff page).</li>
+              </ul>
+              <p>The person then appears in the shared <code>&lt;editor&gt;</code> list of the TEI header and in the <strong>Editor</strong> select of every editor. If they should also be selectable as a note author in the Person editor, add them to the <code>noteResp</code> vocabulary as well (see <em>Adding controlled terminology</em>).</p>
+            </div>
+
+            <div class="mt-5">
+              <h5>Adding a field</h5>
+              <p>Fields are added symmetrically across render, export, and import. Using the Person editor's <code>occupation</code> block as the worked example:</p>
+              <ol>
+                <li>Confirm the element/attribute (e.g. <code>occupation/@n</code>) exists in the relevant <code>templates/*.xml</code> file — the templates are the structural authority; do not edit them to invent elements.</li>
+                <li>Add the input to the section's render function in the editor JS, taking every label from <code>BA.uiText</code> (never a literal string). For occupations this is <code>addOccBlock()</code> in <code>JS/ba/person-editor.js</code>.</li>
+                <li>Extend the three functions symmetrically: <code>getPersonData</code> (read the value off the form), <code>buildPersonBody</code> (serialise it to TEI), and <code>importPersonXML</code> (map it back on import). The other editors follow the same <code>get{X}Data</code> / <code>build{X}Body</code> / <code>import{X}XML</code> naming (<code>place-</code>, <code>work-</code>, <code>ms-editor.js</code>).</li>
+                <li>If the field is mandatory, add a rule in <code>JS/ba/validate.js</code>.</li>
+                <li>Run the round-trip check: create a record exercising the field, export, import, export again — any diff beyond whitespace and the appended <code>&lt;change&gt;</code> element is a failure.</li>
+              </ol>
+            </div>
+
+            <div class="mt-5">
+              <h5>Adding controlled terminology</h5>
+              <p>The controlled vocabularies live in <code>JS/ba/ui-text.js</code> under <code>BA.uiText.vocab</code>. Hand edits are allowed. To add a value to an existing list:</p>
+              <ol>
+                <li>Find the vocab key under <code>BA.uiText.vocab</code> (each key is an array of <code>{ v, l }</code> entries).</li>
+                <li>Append an entry <code>{ "v": "storedValue", "l": "Display label" }</code> — <code>v</code> is written to TEI, <code>l</code> is the display label.</li>
+                <li>Save and reload the editor.</li>
+              </ol>
+              <p>A brand-new vocab key additionally needs its <code>&lt;select&gt;</code> wired into the editor JS (as in <em>Adding a field</em>, step 2).</p>
+              <p class="callout"><strong>Try it.</strong> Append <code>{ "v": "Dummy", "l": "Dummy" }</code> to the <code>faithValue</code> list in <code>JS/ba/ui-text.js</code>, reload the Person editor, and open the <strong>Faith</strong> field — "Dummy" now appears in its dropdown. Remove the entry to revert.</p>
+            </div>
+
+            <div class="mt-5">
+              <h5>Data and index lifecycle</h5>
+              <p>Records live in the repository under <code>data/manuscripts/</code>, <code>data/persons/</code>, <code>data/places/</code>, and <code>data/works/</code>, one numeric <code>{id}.xml</code> file per record. Listings are driven by the authority index in <code>index/index-{type}.json</code>.</p>
+              <ul>
+                <li><strong>Rebuild the index</strong> with <code>node tools/build-index.js</code>, which scans <code>data/**</code> and writes the <code>index/*.json</code> files.</li>
+                <li><strong>Or let CI do it:</strong> the GitHub Action <code>.github/workflows/build-index.yml</code> runs the same script on every push that touches <code>data/**</code> and commits the refreshed index.</li>
+                <li>Each browser caches an index for <strong>one hour</strong>; the reload button (<i class="fa-solid fa-arrows-rotate"></i>) next to the Record ID clears that cache and re-fetches all four indexes.</li>
+              </ul>
+              <p>The <a href="collection.html">Data Collection</a> pages read exactly these files — the same <code>index/*.json</code> and <code>data/**</code> TEI records the editors produce.</p>
+
+              <h6 class="mt-4">Live index rebuild (optional)</h6>
+              <p>By default the lookups read the prebuilt <code>index/*.json</code> — one request per type. A <strong>live mode</strong> can instead rebuild the index in the browser directly from the repository's <code>data/</code> folder, so every lookup reflects the current files without waiting for <code>tools/build-index.js</code> or the CI Action. Toggle it in <code>JS/ba/config.js</code>:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>BA.config.authorityLive = { enabled: true, ttlMs: 60000 };</code></pre>
+              <ul>
+                <li>When <code>enabled</code>, each lookup lists <code>data/{type}</code> via the GitHub API and fetches every record file, extracting headwords client-side with the same rules as <code>tools/build-index.js</code>. Results are cached for <code>ttlMs</code> (default 60&nbsp;s), so a file added to <code>data/</code> and pushed appears in lookups within that window.</li>
+                <li>This costs <strong>one listing request + one fetch per record</strong> (N+1) on each rebuild, against GitHub's <strong>unauthenticated limit of 60 requests/hour per IP</strong>. If a submit token is stored in the browser it is reused to lift that limit.</li>
+                <li>If the listing or any file fails to load, the lookup falls back to the prebuilt index automatically — no error is shown.</li>
+                <li><strong>Recommendation:</strong> keep this <strong>OFF</strong> once the record count grows. The prebuilt index is a single request per type; live mode is N+1 and can exhaust the rate limit. Leave live mode for small collections or short-term verification that a just-pushed record is picked up.</li>
+              </ul>
+            </div>
+
+            <div class="mt-5">
+              <h5>Zotero and GeoNames configuration</h5>
+              <p>Both integrations are configured in <code>JS/ba/config.js</code> and stay hidden until configured.</p>
+              <ul>
+                <li><code>BA.config.zotero.apiKey</code> — the Zotero API key. It ships in client code and is visible to every visitor, so it <strong>must be a read-only key</strong> scoped to the library.</li>
+                <li><code>BA.config.zotero.libraryType</code> — <code>"groups"</code> or <code>"users"</code>.</li>
+                <li><code>BA.config.zotero.libraryId</code> — the numeric library id; while empty the Zotero bibliography lookup is hidden.</li>
+                <li><code>BA.config.zotero.citationStyle</code> — the CSL style id used to format each bibliography reference (default <code>"chicago-fullnote-bibliography"</code>). Any id from the <a href="https://www.zotero.org/styles" target="_blank" rel="noopener">Zotero style repository</a> works.</li>
+                <li><code>BA.config.geonamesUsername</code> — a GeoNames account name; while empty the GeoNames lookup in the Place editor is hidden.</li>
+              </ul>
+              <p>Creating a GeoNames account is <strong>not</strong> enough: the account must also <strong>enable the free web services</strong> before <code>searchJSON</code> returns results. Log in at <a href="https://www.geonames.org/">geonames.org</a> → <em>Manage Account</em> and click the <em>"Free Web Services — click here to enable"</em> link. Until this is done GeoNames answers with HTTP 200 and an in-band error object instead of results; the Place editor's lookup now surfaces that message as a red row. Common status values:</p>
+              <ul>
+                <li><strong>10</strong> — wrong username, or the account is not enabled to use the free web service.</li>
+                <li><strong>18 / 19 / 20</strong> — hourly / daily / weekly credit limit exceeded.</li>
+              </ul>
+
+              <h6 class="mt-4">Zotero bibliography lookup</h6>
+              <p>Once a <code>libraryId</code> is set, every Bibliography section (in the Person, Place, Work, and Manuscript editors) shows a <strong>Search the project's Zotero library</strong> field. Type a few words of a title, creator, or year; the dropdown lists matching items as <em>Creator (Year): short title</em>. Selecting one fills the reference block:</p>
+              <ul>
+                <li><strong>Title of publication</strong> receives the full formatted note reference — author, title, publication details, and pages — produced by Zotero from the configured <code>citationStyle</code> (e.g. <em>Ronny Vollandt, "Die aktuelle Forschung zu den arabischen Bibelübersetzungen," Theologische Literaturzeitung 144, no. 3 (2019): 147–62.</em>). Any HTML formatting is stripped to plain text, and a trailing URL is removed while the closing period is kept.</li>
+                <li><strong>Link (ptr)</strong> receives the item's Zotero URL, so the record keeps a pointer back to the library entry.</li>
+              </ul>
+              <p>You can still edit the title by hand afterwards, or type a reference manually without using the lookup. Because the formatted note is stored as the reference's title, the <strong>Source</strong> selects elsewhere in the record (which point at these bibliography entries) show that title as their option label, truncated with the full text on hover.</p>
+              <p class="text-muted small">Notes: the lookup needs a live network connection to <code>api.zotero.org</code>. If the configured <code>citationStyle</code> id is invalid or Zotero cannot format an item, the lookup still works but falls back to the item's short title (with a warning in the browser console). Style ids are case-sensitive and must exist in the Zotero style repository — for the current Chicago full-note style the id is <code>chicago-fullnote-bibliography</code> (the <code>-17th-edition</code> suffix belongs to the archived 16th-edition style and is rejected by the API).</p>
+            </div>
+
+            <div class="mt-5">
+              <h5>Submitting records from the editor</h5>
+              <p>Each editor has a <strong>Submit to repository</strong> button beside <em>Download XML</em>. It commits the current record to <code>data/&lt;type&gt;/&lt;id&gt;.xml</code> on the <code>BA.config.github.branch</code> branch of the repository named in <code>BA.config.repoUrl</code>, using the same validation gate as Download. A submit that would create a new file and one that updates an existing file are handled automatically.</p>
+              <p>Writing to GitHub requires each contributor to supply a <strong>fine-grained personal access token</strong> once, in the submit dialog. To create one:</p>
+              <ul>
+                <li>Go to github.com → <em>Settings</em> → <em>Developer settings</em> → <em>Fine-grained tokens</em> → <em>Generate new token</em>.</li>
+                <li>Set <em>Repository access</em> to <strong>Only select repositories</strong> and choose this repository.</li>
+                <li>Under <em>Permissions</em> → <em>Repository permissions</em>, set <strong>Contents</strong> to <strong>Read and write</strong>.</li>
+              </ul>
+              <p>The token is held in your browser's <code>localStorage</code> only (key <code>ba-github-token</code>); it is <strong>never committed to the repository</strong> and is not shared between browsers or machines. Use <strong>Forget token</strong> in the dialog to remove it. After a successful submit the lookup index rebuilds from the committed files and refreshes within about a minute.</p>
+              <p>Contributors who prefer not to store a token can use the <strong>Open GitHub's new-file page</strong> link in the dialog: it opens GitHub's web editor with the filename and record content prefilled, so the record can be committed through a normal pull request. Very large records exceed the prefill link's length limit; in that case download the file and add it on GitHub manually.</p>
             </div>
           </div>
         </div>
@@ -692,12 +679,14 @@
       </div>
       <div class="mb-3">
         <a class="footer-link mx-2" href="index.html">Home</a>
-        <a class="footer-link mx-2" href="resources.html">Resources</a>
-        <a class="footer-link mx-2" href="editor.html">Metadata Editor</a>
-        <a class="footer-link mx-2" href="collection.html">Metadata Collection</a>
-        <a class="footer-link mx-2" href="viewer.html">Transcription Viewer</a>
+        <a class="footer-link mx-2" href="editor.html">Manuscript Editor</a>
+        <a class="footer-link mx-2" href="person-editor.html">Person Editor</a>
+        <a class="footer-link mx-2" href="place-editor.html">Place Editor</a>
+        <a class="footer-link mx-2" href="work-editor.html">Work Editor</a>
+        <a class="footer-link mx-2" href="collection.html">Data Collection</a>
         <a class="footer-link mx-2" href="documentation.html">Documentation</a>
         <a class="footer-link mx-2" href="about.html">About</a>
+        <a class="footer-link mx-2" href="resources.html">Resources</a>
       </div>
       <div class="text-center mt-2">
         <span>© 2025 <span class="mano">&lt;MANO&gt;</span></span>

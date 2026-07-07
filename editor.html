@@ -75,10 +75,11 @@
                 <div class="offcanvas-body">
                     <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                     <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="resources.html">Resources</a></li>
-                    <li class="nav-item"><a class="nav-link active" href="editor.html">Metadata Editor</a></li>
-                    <li class="nav-item"><a class="nav-link" href="collection.html">Metadata Collection</a></li>
-                    <li class="nav-item"><a class="nav-link" href="viewer.html">Transcription Viewer</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="editor.html">Manuscript Editor</a></li>
+                    <li class="nav-item"><a class="nav-link" href="person-editor.html">Person Editor</a></li>
+                    <li class="nav-item"><a class="nav-link" href="place-editor.html">Place Editor</a></li>
+                    <li class="nav-item"><a class="nav-link" href="work-editor.html">Work Editor</a></li>
+                    <li class="nav-item"><a class="nav-link" href="collection.html">Data Collection</a></li>
                     <li class="nav-item"><a class="nav-link" href="documentation.html">Documentation</a></li>
                     <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
                     <hr class="my-3">
@@ -95,8 +96,13 @@
         <div class="container container-page mt-4 mb-5">
           <button onclick="history.back()" class="btn back-btn btn-sm btn-outline-secondary" aria-label="Go back">Back</button>
           
-          <h1 class="page-title">Metadata Editor</h1>
-                    
+          <h1 class="page-title">Manuscript Editor</h1>
+          <p class="text-muted">Also edit:
+            <a href="person-editor.html">Persons</a> ·
+            <a href="place-editor.html">Places</a> ·
+            <a href="work-editor.html">Works</a>
+          </p>
+
           <div class="container data-enter">
             <div class="row mt-4 align-items-end">
               <!-- Left column -->
@@ -108,28 +114,27 @@
 
               <!-- Middle column -->
               <div class="col-12 col-md-4 text-start text-md-center mb-2 mb-md-0">
-                <label for="fileUpload" class="form-label">Upload XML or JSON</label>
-                <input type="file" id="fileUpload" class="form-control" accept=".xml,.json">
+                <div class="d-flex gap-2 justify-content-start justify-content-md-center align-items-center flex-wrap">
+                  <label for="fileUpload" class="btn btn-outline-primary responsive-btn mb-0"><i class="bi bi-file-earmark-arrow-up"></i> Upload XML</label>
+                  <input type="file" id="fileUpload" class="d-none" accept=".xml">
+                  <button type="button" id="openRepoBtn" class="btn btn-outline-primary responsive-btn" aria-label="Open manuscript record from repository"><i class="bi bi-folder2-open"></i> Open from repository</button>
+                </div>
               </div>
 
               <!-- Right column -->
               <div class="col-12 col-md-4 d-flex justify-content-start justify-content-md-end">
-                <button id="addManuscriptBtn" class="btn btn-primary responsive-btn" aria-label="Add manuscript description"><i class="bi bi-plus-circle"></i> New description</button>
+                <button id="newRecordBtn" class="btn btn-primary responsive-btn" aria-label="New manuscript description"><i class="bi bi-plus-circle"></i> New description</button>
               </div>
             </div>
 
-            <div class="mt-3 mb-5 d-flex justify-content-center gap-2">
-              <button id="loadSampleBtn" class="btn btn-secondary btn-sm" type="button">
-                <i class="bi bi-file-earmark-text"></i> Load sample
-              </button>
-              <button id="clearAllBtn" class="btn btn-danger btn-sm" type="button">
-                <i class="bi bi-x-circle"></i> Clear all
-              </button>
-            </div>
+            <div id="alertZone" class="mt-3"></div>
 
-            <div id="manuscriptFormsContainer"></div>
-            <div class="text-center mt-5">
-              <button type="button" class="btn btn-success responsive-btn" id="downloadAllJSON" aria-label="Download JSON"><i class="bi bi-file-earmark-arrow-down"></i> Download JSON</button>
+            <div id="msFormContainer" class="mt-4"></div>
+
+            <div class="text-center mt-4 d-flex justify-content-center gap-2">
+              <button type="button" class="btn btn-secondary responsive-btn" id="previewBtn" aria-label="Preview XML"><i class="bi bi-eye"></i> Preview XML</button>
+              <button type="button" class="btn btn-success responsive-btn" id="downloadBtn" aria-label="Download XML"><i class="bi bi-file-earmark-arrow-down"></i> Download XML</button>
+              <button type="button" class="btn btn-primary responsive-btn" id="submitRepoBtn" aria-label="Submit to repository"><i class="bi bi-cloud-upload"></i> Submit to repository</button>
             </div>
           </div>
         </div>
@@ -143,26 +148,10 @@
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                  <p>The Metadata Editor enables the structured creation and management of manuscript metadata in full compliance with the <a href="https://tei-c.org/release/doc/tei-p5-doc/en/html/MS.html" target="_blank">TEI P5 Manuscript Description guidelines</a>. A single session may include the description of one or multiple manuscripts. Each manuscript can be exported in <strong>TEI-XML or JSON</strong> formats, while all manuscripts described during the session may also be downloaded collectively in JSON.
-                  </p>
-                  <p>
-                    You may also <strong>upload existing metadata</strong> in JSON or TEI-XML. When the file follows the structure implemented in MANO, all information is automatically restored into the form, allowing you to continue working without re-entering data manually.
-                  </p>
-                  <p>Fields marked with the <strong>icon</strong> <a href="#"><i class="bi bi-box-arrow-up-right"></i></a> connect directly to the corresponding documentation for quick reference.</p>
-                  <p>The editor includes several helper functions:
-                    <ul>
-                      <li><strong>Preview</strong> generates a live TEI-XML representation of the description in a modal window, allowing you to review the XML structure without downloading it.</li>
-                      <li><strong>Validate</strong> performs consistency and completeness checks based on required fields and data-type constraints.</li>
-                      <li><strong>Load sample</strong> imports a complete, real manuscript description to help users explore how TEI elements map to the form.</li>
-                      <li><strong>Clear all</strong> removes all manuscript descriptions from the session.</li>
-                    </ul>
-                  </p>
-                  <p>
-                    Completed JSON files may be contributed to the
-                    <a href="https://github.com/mano-project/mano-metadata/tree/main/data" target="_blank">MANO GitHub repository</a>. The 
-                    records will be publicly accessible in the
-                    <a href="collection.html">MANO Metadata Collection</a>, enriching the shared digital resource for manuscript research.
-                  </p>
+                  <p>The Manuscript Editor creates one <strong>TEI manuscript record</strong> per session, conforming to the Biblia Arabica project template. The description is organised into the accordion sections below (identification, contents, physical description, history, reproductions, and bibliography). Each record receives a numeric ID; the exported file <code>{id}.xml</code> belongs in the repository folder <code>data/manuscripts/</code>.</p>
+                  <p>All references to persons, places, and works link to other records of this project via the <strong>local authority index</strong> — there are no external (Wikidata/GeoNames/GND) lookups on this page.</p>
+                  <p><strong>Upload XML</strong> restores an existing manuscript record into the form. <strong>Preview XML</strong> shows the TEI-XML before download.</p>
+                  <p>Completed records may be contributed to the project's data repository, from where they are published and indexed for the other editors to link against.</p>
                 </div>
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
@@ -248,10 +237,11 @@
             <!-- Links centered in one line -->
             <div class="mb-3">
                 <a class="footer-link mx-2" href="index.html">Home</a>
-                <a class="footer-link mx-2" href="resources.html">Resources</a>
-                <a class="footer-link mx-2" href="editor.html">Metadata Editor</a>
-                <a class="footer-link mx-2" href="collection.html">Metadata Collection</a>
-                <a class="footer-link mx-2" href="viewer.html">Transcription Viewer</a>
+                <a class="footer-link mx-2" href="editor.html">Manuscript Editor</a>
+                <a class="footer-link mx-2" href="person-editor.html">Person Editor</a>
+                <a class="footer-link mx-2" href="place-editor.html">Place Editor</a>
+                <a class="footer-link mx-2" href="work-editor.html">Work Editor</a>
+                <a class="footer-link mx-2" href="collection.html">Data Collection</a>
                 <a class="footer-link mx-2" href="documentation.html">Documentation</a>
                 <a class="footer-link mx-2" href="about.html">About</a>
             </div>
@@ -278,8 +268,16 @@
         </div>
 
 
-        <script src="JS/metadata-new.js"></script>
-        <script src="JS/validation.js"></script>
+        <script src="JS/ba/config.js"></script>
+        <script src="JS/ba/ui-text.js"></script>
+        <script src="JS/ba/xml-utils.js"></script>
+        <script src="JS/ba/form-engine.js"></script>
+        <script src="JS/ba/lod.js"></script>
+        <script src="JS/ba/authority.js"></script>
+        <script src="JS/ba/tei-header.js"></script>
+        <script src="JS/ba/github.js"></script>
+        <script src="JS/ba/ms-editor.js"></script>
+        <script src="JS/ba/validate.js"></script>
         <script src="JS/adjustButtonSize.js"></script>
         <!-- CodeMirror core + XML mode -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>

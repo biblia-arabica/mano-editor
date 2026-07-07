@@ -462,3 +462,9 @@ section h2 {
     margin-left: 0;
   }
 }
+
+/* R06: long-text fields (Note, Summary, Description, Transcription, Translation,
+   Quote, Incipit, Explicit) are full-width textareas the user can enlarge. */
+.data-enter textarea.form-control {
+  resize: vertical;
+}

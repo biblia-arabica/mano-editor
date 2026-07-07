@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://syriaca.org/documentation/syriaca-tei-main.rnc" type="application/relax-ng-compact-syntax"?><TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:srophe="https://srophe.app" xmlns:functx="http://www.functx.com" xmlns:saxon="http://saxon.sf.net/" xml:lang="en">
+    <teiHeader>
+        <fileDesc>
+            <titleStmt>
+                <title level="a" xml:lang="en"/>
+                <title level="m" xml:lang="en">Biblia Arabica: Critical edition and comprehensive
+                    digital inventory of Arabic Old Testament manuscripts and their
+                    paratexts</title>
+                <sponsor ref="https://www.uni-muenchen.de">
+                    <orgName>Ludwig Maximilian University of Munich</orgName> (
+                    <orgName xml:lang="de">Ludwig-Maximilians-Universität München</orgName>) </sponsor>
+                <sponsor ref="http://www.naher-osten.uni-muenchen.de">
+                    <orgName>Institute of Near and Middle Eastern Studies</orgName> (
+                    <orgName xml:lang="de">Institut für den Nahen und Mittleren Osten</orgName>) </sponsor>
+                <funder ref="https://badw.de/en/the-academy.html">
+                    <orgName>Bavarian Academy of Sciences and Humanities</orgName> (
+                    <orgName xml:lang="de">Bayerische Akademie der Wissenschaften</orgName>) </funder>
+                <funder ref="https://www.adwmainz.de/startseite.html">
+                    <orgName>Academy of Sciences and Literature in Mainz</orgName> (
+                    <orgName xml:lang="de">Akademie der Wissenschaften und der Literatur |
+                        Mainz</orgName>) </funder>
+                <principal ref="#rvollandt">Ronny Vollandt</principal>
+                <principal ref="#ngibson">Nathan Gibson</principal>
+                <editor xml:id="rvollandt" role="general"
+                    ref="https://www.naher-osten.uni-muenchen.de/personen/professoren/ronny_vollandt/index.html
+                    http://orcid.org/0000-0002-1702-2981
+                    https://viaf.org/viaf/309581349">Ronny Vollandt</editor>
+                <editor xml:id="ngibson" role="contributor"
+                    ref="https://www.naher-osten.uni-muenchen.de/personen/wiss_ma/gibson/index.html
+                    http://orcid.org/0000-0003-0786-8075
+                    https://viaf.org/viaf/59147905242279092527">Nathan P. Gibson</editor>
+                <editor xml:id="mmoliere" role="contributor"
+                    ref="https://www.naher-osten.uni-muenchen.de/personen/wiss_ma/maximilian_de_moliere/index.html
+                    https://orcid.org/0000-0002-2168-8655
+                    http://viaf.org/viaf/65156495392717561393">Maximilian de Molière</editor>
+                <editor xml:id="ptarras" role="contributor"
+                    ref="https://www.naher-osten.uni-muenchen.de/personen/wiss_ma/peter-tarras/index.html"
+                    >Peter Tarras</editor>
+                <editor xml:id="lgzella" role="contributor"
+                    ref="https://www.naher-osten.uni-muenchen.de/personen/doktoranden/lea_gzella_rasche/index.html"
+                    >Lea Gzella</editor>
+                <respStmt>
+                    <resp>Srophé app design and development by</resp>
+                    <name type="person" ref="http://syriaca.org/documentation/editors.xml#wsalesky"
+                        >Winona Salesky</name>
+                </respStmt>
+            </titleStmt>
+            <publicationStmt>
+                <authority>
+                    <ref target="https://biblia-arabica.com/">Biblia Arabica – Critical edition and
+                        comprehensive digital inventory of Arabic Old Testament manuscripts and
+                        their paratexts</ref>
+                </authority>
+                <idno type="URI">https://biblia-arabica.com/place/</idno>
+                <availability>
+                    <licence target="http://creativecommons.org/licenses/by/3.0/">
+                        <p>Distributed under a Creative Commons Attribution 4.0 International (CC BY
+                            4.0) License.</p>
+                    </licence>
+                </availability>
+            </publicationStmt>
+            <sourceDesc>
+                <p>Born digital.</p>
+            </sourceDesc>
+        </fileDesc>
+        <revisionDesc status="unpublished">
+            <change who="#" when=""/>
+        </revisionDesc>
+    </teiHeader>
+   <text>
+      <body>
+         <listPlace>
+            <place>
+               <placeName xml:lang="en" type="ba-headword" source=""/>
+               <placeName xml:lang="ar" source=""/>
+               <placeName xml:lang="he" source=""/>
+               <desc><quote source="" xml:lang=""/></desc>
+               <location>
+                  <geo source=""/>
+                  <settlement ref="" source=""/>
+                  <region ref="" source=""/>
+               </location>
+               <idno type="URI"></idno>
+               <idno type="URI"></idno>
+               <bibl>
+                  <title/>
+                  <citedRange unit="p"/>
+                  <ptr target=""/>
+               </bibl>
+            </place>
+         </listPlace>
+      </body>
+   </text>
+</TEI>

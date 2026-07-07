@@ -1,3 +1,4 @@
+// LEGACY — superseded by JS/ba/*, kept for reference. Not loaded by any page.
 // Parse folio labels like "5r", "10v", or "7"
 function parseFolioLabel(lbl) {
   if (!lbl) return null;

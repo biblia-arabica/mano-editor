@@ -1,0 +1,15 @@
+{
+  "generated": "2026-07-07T05:16:34.645Z",
+  "type": "work",
+  "records": [
+    {
+      "id": "1",
+      "uri": "https://biblia-arabica.com/work/1",
+      "headword": "Iggerot",
+      "altNames": [
+        "david"
+      ],
+      "file": "data/works/1.xml"
+    }
+  ]
+}

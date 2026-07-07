@@ -1,0 +1,20 @@
+{
+  "generated": "2026-07-07T05:16:34.645Z",
+  "type": "person",
+  "records": [
+    {
+      "id": "1",
+      "uri": "https://biblia-arabica.com/person/1",
+      "headword": "Moses Zacuto",
+      "altNames": [],
+      "file": "data/persons/1.xml"
+    },
+    {
+      "id": "2",
+      "uri": "https://biblia-arabica.com/person/2",
+      "headword": "Maimonides",
+      "altNames": [],
+      "file": "data/persons/2.xml"
+    }
+  ]
+}
