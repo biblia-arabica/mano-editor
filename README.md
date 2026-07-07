@@ -1,16 +1,15 @@
-# MANO - Manuscripts Online  
-**A collaborative platform for digital manuscript studies**
+# MANO for Biblia Arabica
 
-## Biblia Arabica editors
+This is a fork of the editor and data collection in **([MANO Project](https://github.com/mano-project/mano-project.github.io))**.
 
-This repository also hosts a four-entity TEI editor suite adapted for the
-Biblia Arabica project. Each entity is edited on its own page and exported as
-one TEI file per record:
+**MANO for Biblia Arabica** allows users to edit four different TEI entities adapted for the Biblia Arabica project and create links between them. Each entity is edited on its own page and exported as one TEI file per record:
 
 - **Manuscript Editor** — `editor.html` → `data/manuscripts/{id}.xml`
 - **Person Editor** — `person-editor.html` → `data/persons/{id}.xml`
 - **Place Editor** — `place-editor.html` → `data/places/{id}.xml`
 - **Work Editor** — `work-editor.html` → `data/works/{id}.xml`
+
+In addition, identifiers can be pulled from Geonames, Wikidata, and GND. Bibliographic references can be pulled from Zotero.
 
 Shared machinery lives in `JS/ba/` (config, UI text, XML utils, form engine,
 LOD autocomplete, authority index, TEI header, per-entity editors, validation).
@@ -23,14 +22,3 @@ TEI files by `tools/build-index.js` (run locally or via the GitHub Action).
 To enable the optional GeoNames lookup in the Place Editor, set
 `BA.config.geonamesUsername`.
 
----
-
-
-This is the **website of the MANO Project**, hosted on GitHub Pages at:  
-**[https://mano-project.github.io](https://mano-project.github.io)**  
-
-The website provides access to all MANO tools and collections, including:  
-- **Resources** → shared teaching materials from contributors  
-- **Metadata Editor** → tool for describing manuscripts according to the TEI P5 guidelines  
-- **Metadata Collection** → searchable collection of manuscript descriptions  
-- **Transcription Viewer** → interface for viewing and working with XML transcriptions  
