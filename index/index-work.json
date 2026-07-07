@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-07T11:43:55.532Z",
+  "generated": "2026-07-07T11:49:54.158Z",
   "type": "work",
   "records": [
     {
@@ -10,6 +10,16 @@
         "david"
       ],
       "file": "data/works/1.xml"
+    },
+    {
+      "id": "2",
+      "uri": "https://biblia-arabica.com/work/2",
+      "headword": "Test",
+      "altNames": [
+        "Moritz Steinschneider, Die Arabische Literatur Der Juden: Ein Beitrag Zur Literaturgeschichte Der Araber, Großenteils Aus Handschriftlichen Quellen (Hildesheim: Georg Olms, 1964).",
+        "W[ilhelm] Bacher and Jacob Cohn, “Zu Saadja’s Pentateuchübersetzung,” Monatsschrift für Geschichte und Wissenschaft des Judentums 45, no. 10–12 (1901): 565–66."
+      ],
+      "file": "data/works/2.xml"
     }
   ]
 }
