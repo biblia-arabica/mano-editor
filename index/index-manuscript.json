@@ -1,12 +1,15 @@
 {
-  "generated": "2026-07-07T05:16:34.645Z",
+  "generated": "2026-07-07T12:09:09.232Z",
   "type": "manuscript",
   "records": [
     {
       "id": "1",
       "uri": "https://biblia-arabica.com/manuscript/1",
       "headword": "British Library 9165",
-      "altNames": [],
+      "altNames": [
+        "Moses Zacuto",
+        "zacuto"
+      ],
       "file": "data/manuscripts/1.xml"
     }
   ]

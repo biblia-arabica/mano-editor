@@ -146,15 +146,42 @@
       return out;
     }
 
+    // Direct-child text of `parent` for a given local name (avoids nested-element
+    // leakage, e.g. bibliography <title>s inside a work/manuscript).
+    function directTexts(parent, name) {
+      if (!parent) return [];
+      return Array.prototype.filter.call(parent.children || [], function (ch) {
+        return ch.localName === name;
+      }).map(function (ch) { return U.text(ch); }).filter(Boolean);
+    }
+
     if (type === "person") {
-      headword = U.text(U.q(body, 'persName[@type="ba-headword"]/name'));
-      altNames = othersThan(texts(U.qa(body, "persName/name")), headword);
+      // persName name forms + associated placeNames (birth/death/floruit/residence).
+      headword = U.text(U.q(body, 'persName[@type="ba-headword"]/name')) ||
+        U.text(U.q(body, 'persName[@type="ba-headword"]'));
+      var pNames = U.qa(body, "persName").map(function (pn) {
+        var nm = U.q(pn, "name");
+        return U.text(nm || pn);
+      });
+      altNames = othersThan(pNames.concat(texts(U.qa(body, "placeName"))), headword);
     } else if (type === "place") {
       headword = U.text(U.q(body, 'placeName[@type="ba-headword"]'));
       altNames = othersThan(texts(U.qa(body, "placeName")), headword);
     } else if (type === "work") {
-      headword = U.text(U.q(body, 'title[@type="ba-headword"]'));
-      altNames = othersThan(texts(U.qa(body, "title")), headword);
+      // The work's own title/author/persName are direct children of the root
+      // <bibl>; nested bibliography <bibl>s are excluded.
+      var bodyEl = U.q(doc, "body");
+      var root = bodyEl && Array.prototype.filter.call(bodyEl.children, function (ch) {
+        return ch.localName === "bibl";
+      })[0];
+      var titleEls = directTexts(root, "title");
+      var hwEl = root && Array.prototype.filter.call(root.children, function (ch) {
+        return ch.localName === "title" && ch.getAttribute("type") === "ba-headword";
+      })[0];
+      headword = hwEl ? U.text(hwEl) : "";
+      altNames = othersThan(
+        titleEls.concat(directTexts(root, "author"), directTexts(root, "persName")),
+        headword);
     } else if (type === "manuscript") {
       var msName = U.text(U.q(body, "msName"));
       if (msName) {
@@ -164,7 +191,11 @@
         var idno = U.text(U.q(body, "idno"));
         headword = [repo, idno].filter(Boolean).join(" ").trim();
       }
-      altNames = [];
+      // authors + mentioned texts (titles) from msContents only.
+      var mc = U.q(body, "msContents");
+      altNames = othersThan(
+        (mc ? texts(U.qa(mc, "author")).concat(texts(U.qa(mc, "title"))) : []),
+        headword);
     }
     return { headword: headword, altNames: altNames };
   }

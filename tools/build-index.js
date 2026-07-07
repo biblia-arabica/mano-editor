@@ -95,15 +95,20 @@ function extract(type, xml, file) {
   var altNames = [];
 
   if (type === "person") {
+    // altNames: the person's other name forms (persName) + associated places
+    // (placeName in birth/death/floruit/residence).
     var names = elements(body, "persName").map(function (p) {
       var nm = elements(p.inner, "name")[0];
-      return { type: attrVal(p.attrs, "type"), text: nm ? textOf(nm.inner) : "" };
+      return { type: attrVal(p.attrs, "type"), text: nm ? textOf(nm.inner) : textOf(p.inner) };
     }).filter(function (n) { return n.text; });
     var hw = names.filter(function (n) { return n.type === "ba-headword"; })[0];
     headword = hw ? hw.text : "";
-    altNames = dedupe(names.map(function (n) { return n.text; }).filter(function (t) { return t !== headword; }));
+    var pPlaces = elements(body, "placeName").map(function (pl) { return textOf(pl.inner); });
+    altNames = dedupe(names.map(function (n) { return n.text; }).concat(pPlaces)
+      .filter(function (t) { return t && t !== headword; }));
 
   } else if (type === "place") {
+    // altNames: the place's other name forms (placeName) only.
     var pns = elements(body, "placeName").map(function (p) {
       return { type: attrVal(p.attrs, "type"), text: textOf(p.inner) };
     }).filter(function (n) { return n.text; });
@@ -112,12 +117,22 @@ function extract(type, xml, file) {
     altNames = dedupe(pns.map(function (n) { return n.text; }).filter(function (t) { return t !== headword; }));
 
   } else if (type === "work") {
-    var titles = elements(body, "title").map(function (t) {
+    // The work's own title/author/persName are direct children of the root
+    // <bibl xml:id="work-…">. Strip nested (bibliography) <bibl> blocks so their
+    // <title>s don't leak into altNames.
+    var wRoot = /<bibl\b[^>]*\bxml:id="work[^"]*"[^>]*>([\s\S]*)<\/bibl>/.exec(body);
+    var wInner = wRoot ? wRoot[1] : body;
+    var wPrev;
+    do { wPrev = wInner; wInner = wInner.replace(/<bibl\b[^>]*>[\s\S]*?<\/bibl>/g, ""); } while (wInner !== wPrev);
+    var titles = elements(wInner, "title").map(function (t) {
       return { type: attrVal(t.attrs, "type"), text: textOf(t.inner) };
     }).filter(function (t) { return t.text; });
     var thw = titles.filter(function (t) { return t.type === "ba-headword"; })[0];
     headword = thw ? thw.text : "";
-    altNames = dedupe(titles.map(function (t) { return t.text; }).filter(function (t) { return t !== headword; }));
+    var wExtra = titles.map(function (t) { return t.text; })
+      .concat(elements(wInner, "author").map(function (a) { return textOf(a.inner); }))
+      .concat(elements(wInner, "persName").map(function (p) { return textOf(p.inner); }));
+    altNames = dedupe(wExtra.filter(function (t) { return t && t !== headword; }));
 
   } else if (type === "manuscript") {
     var msName = textOf((elements(body, "msName")[0] || { inner: "" }).inner);
@@ -128,7 +143,12 @@ function extract(type, xml, file) {
       var idno = textOf((elements(body, "idno")[0] || { inner: "" }).inner);
       headword = [repo, idno].filter(Boolean).join(" ").trim();
     }
-    altNames = [];
+    // altNames: authors + mentioned texts (titles) from msContents only.
+    var mcMatch = /<msContents\b[^>]*>([\s\S]*?)<\/msContents>/.exec(body);
+    var mcInner = mcMatch ? mcMatch[1] : "";
+    var msExtra = elements(mcInner, "author").map(function (a) { return textOf(a.inner); })
+      .concat(elements(mcInner, "title").map(function (t) { return textOf(t.inner); }));
+    altNames = dedupe(msExtra.filter(function (t) { return t && t !== headword; }));
   }
 
   if (!headword) {

@@ -124,13 +124,7 @@
     work: [
       { context: "Title", severity: "mandatory",
         test: function (d) { return (d.titles || []).some(function (t) { return t.text; }); },
-        message: "At least one title is required." },
-      { context: "Canonical author name", severity: "mandatory",
-        test: function (d) { return !!(d.author && d.author.value); },
-        message: "A canonical author name is required." },
-      { context: "Attested in Script", severity: "mandatory",
-        test: function (d) { return !!d.script; },
-        message: "The attested script is required." }
+        message: "At least one title is required." }
     ],
     manuscript: [
       { context: "Country of location", severity: "mandatory", test: function (d) { return !!(d.ident && d.ident.country); }, message: "Country of location is required." },

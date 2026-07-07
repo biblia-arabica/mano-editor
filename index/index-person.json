@@ -1,12 +1,14 @@
 {
-  "generated": "2026-07-07T05:16:34.645Z",
+  "generated": "2026-07-07T12:09:09.232Z",
   "type": "person",
   "records": [
     {
       "id": "1",
       "uri": "https://biblia-arabica.com/person/1",
       "headword": "Moses Zacuto",
-      "altNames": [],
+      "altNames": [
+        "Amsterdam"
+      ],
       "file": "data/persons/1.xml"
     },
     {
