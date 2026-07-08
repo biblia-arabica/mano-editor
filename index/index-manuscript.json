@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-08T19:34:57.451Z",
+  "generated": "2026-07-08T19:44:14.664Z",
   "type": "manuscript",
   "records": [
     {
@@ -11,6 +11,13 @@
         "zacuto"
       ],
       "file": "data/manuscripts/1.xml"
+    },
+    {
+      "id": "2",
+      "uri": "https://biblia-arabica.com/manuscript/2",
+      "headword": "St Catherine’s Monastery 1",
+      "altNames": [],
+      "file": "data/manuscripts/2.xml"
     }
   ]
 }
