@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-07T12:09:09.232Z",
+  "generated": "2026-07-08T19:34:57.451Z",
   "type": "work",
   "records": [
     {
@@ -10,6 +10,22 @@
         "Moses Zacuto"
       ],
       "file": "data/works/1.xml"
+    },
+    {
+      "id": "2",
+      "uri": "https://biblia-arabica.com/work/2",
+      "headword": "Test",
+      "altNames": [
+        "Maimonides"
+      ],
+      "file": "data/works/2.xml"
+    },
+    {
+      "id": "3",
+      "uri": "https://biblia-arabica.com/work/3",
+      "headword": "Book of Job",
+      "altNames": [],
+      "file": "data/works/3.xml"
     }
   ]
 }
