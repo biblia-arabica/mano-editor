@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-08T19:44:14.664Z",
+  "generated": "2026-07-08T20:09:09.512Z",
   "type": "manuscript",
   "records": [
     {
@@ -18,6 +18,15 @@
       "headword": "St Catherine’s Monastery 1",
       "altNames": [],
       "file": "data/manuscripts/2.xml"
+    },
+    {
+      "id": "3",
+      "uri": "https://biblia-arabica.com/manuscript/3",
+      "headword": "British Library 26116",
+      "altNames": [
+        "Book of Job"
+      ],
+      "file": "data/manuscripts/3.xml"
     }
   ]
 }
