@@ -142,6 +142,7 @@
                                             </physDesc>
                                             <history>
                                                 <acquisition>
+                                                    <persName ref="https://biblia-arabica.com/person/3">Constantin von Tischendorf</persName>
                                                     <date when="1865-07-11"/>
                                                     <note>Acquired 11 July 1865 from Constantin Tischendorf (1815–1874).</note>
                                                 </acquisition>
