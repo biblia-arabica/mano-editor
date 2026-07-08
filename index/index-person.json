@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-08T20:09:09.512Z",
+  "generated": "2026-07-08T20:14:45.550Z",
   "type": "person",
   "records": [
     {
@@ -17,6 +17,15 @@
       "headword": "Maimonides",
       "altNames": [],
       "file": "data/persons/2.xml"
+    },
+    {
+      "id": "3",
+      "uri": "https://biblia-arabica.com/person/3",
+      "headword": "Constantin von Tischendorf",
+      "altNames": [
+        "Leipzig"
+      ],
+      "file": "data/persons/3.xml"
     }
   ]
 }
