@@ -52,6 +52,7 @@
                                 </fileDesc>
                                 <revisionDesc status="unpublished">
                                     <change who="#mmoliere" when="2026-07-08">Created entry.</change>
+                                    <change who="#mmoliere" when="2026-07-09"/>
                                 </revisionDesc>
                             </teiHeader>
                             <text>
@@ -107,7 +108,7 @@
                                                         </condition>
                                                     </supportDesc>
                                                     <layoutDesc>
-                                                        <layout xml:id="layout-1">
+                                                        <layout writtenLines="23-26" xml:id="layout-1">
                                                             <dimensions type="written">
                                                                 <height unit="mm">180-190</height>
                                                                 <width unit="mm">120-125</width>
@@ -142,8 +143,8 @@
                                             </physDesc>
                                             <history>
                                                 <acquisition>
-                                                    <persName ref="https://biblia-arabica.com/person/3">Constantin von Tischendorf</persName>
                                                     <date when="1865-07-11"/>
+                                                    <persName ref="https://biblia-arabica.com/person/3">Constantin von Tischendorf</persName>
                                                     <note>Acquired 11 July 1865 from Constantin Tischendorf (1815–1874).</note>
                                                 </acquisition>
                                             </history>
