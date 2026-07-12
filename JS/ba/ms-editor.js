@@ -51,6 +51,16 @@
     return '<label class="form-label">' + esc(overrideText || l.label) + star + help + "</label>";
   }
 
+  // Label for an element's attribute, sourced from the uiText attribute gloss
+  // (do not hard-code). e.g. attrLabelHtml("script-hand-description","metamark","function").
+  function attrLabelHtml(section, key, attrName) {
+    return '<label class="form-label">' + esc(L(section, key).attrs[attrName].label) + "</label>";
+  }
+  // Language label for a note's xml:lang select.
+  function langLabelHtml(section) {
+    return attrLabelHtml(section, "note", "xml:lang");
+  }
+
   // Open-vocab fields use the shared visible <select> + "Other…" helper:
   // F.selectWithOtherHtml(cls, vocabKey, "").
 
@@ -127,8 +137,8 @@
     "col-catchwords": function () { return selectHtml("col-catchwords", "catchwords"); },
     "lay-sum-desc": function () { return selectHtml("lay-sum-desc", "pageLayoutFeature"); },
     "ly-just": function () { return selectHtml("ly-just", "justificationFeature"); },
-    "ly-ruling": function () { return selectHtml("ly-ruling", "rulingPricking"); },
-    "ly-pricking": function () { return selectHtml("ly-pricking", "rulingPricking"); },
+    "ly-ruling": function () { return selectHtml("ly-ruling", "ruling"); },
+    "ly-pricking": function () { return selectHtml("ly-pricking", "pricking"); },
     "dec-desc": function () { return selectHtml("dec-desc", "textLayoutFeature"); },
     "hn-locus": function () { return locusEntry("hn-locus"); },
     "hn-persname": function () {
@@ -136,7 +146,10 @@
         col(5, '<label class="form-label">Role</label>' + selectHtml("hn-role", "handPersonRole")));
     },
     "hn-place": function () { return '<input type="text" class="form-control lod-autocomplete hn-place" data-lod="local-place">'; },
-    "hn-metamark": function () { return selectHtml("hn-metamark", "handMetamarkFunction"); },
+    "hn-metamark": function () {
+      return row(col(8, labelHtml("script-hand-description", "metamark") + textInput("hn-metamark-text")) +
+        col(4, attrLabelHtml("script-hand-description", "metamark", "function") + selectHtml("hn-metamark", "handMetamarkFunction")));
+    },
     "bind-place": function () { return '<input type="text" class="form-control lod-autocomplete bind-place" data-lod="local-place">'; },
     "hv-place": function () { return '<input type="text" class="form-control lod-autocomplete hv-place" data-lod="local-place">'; },
     "hv-person": function () {
@@ -211,7 +224,8 @@
   function fWritingMaterial() {
     return row(
       col(6, labelHtml("writing-material", "material") + F.selectWithOtherHtml("sup-material", "writingMaterial", "")) +
-      col(6, labelHtml("writing-material", "note") + textInput("sup-note") )) +
+      col(4, labelHtml("writing-material", "note") + textInput("sup-note")) +
+      col(2, langLabelHtml("writing-material") + langSelect("sup-note-lang"))) +
       row(
         col(4, labelHtml("writing-material", "measure") + textInput("ext-folios")) +
         col(4, labelHtml("writing-material", "height") + textInput("ext-h")) +
@@ -221,21 +235,24 @@
           selectHtml("fol-style", "foliationStyle", "Style") + selectHtml("fol-rendition", "foliationRendition", "Rendition") + "</div>")) +
       "<h6>" + esc(L("writing-material", "collation").label) + "</h6>" +
       row(
-        col(4, labelHtml("writing-material", "formula") + selectHtml("col-formula", "quireFormula")) +
-        col(4, '<label class="form-label">Unit</label>' + textInput("col-unit")) +
-        col(4, '<label class="form-label">Note</label>' + textInput("col-note"))) +
+        col(3, labelHtml("writing-material", "formula") + selectHtml("col-formula", "quireFormula")) +
+        col(3, '<label class="form-label">Unit</label>' + textInput("col-unit")) +
+        col(3, '<label class="form-label">Note</label>' + textInput("col-note")) +
+        col(3, langLabelHtml("writing-material") + langSelect("col-note-lang"))) +
       subSection("writing-material", "catchwords", "col-catchwords", "Add ordering of the quires") +
       "<h6>" + esc(L("writing-material", "condition").label) + "</h6>" +
       row(
-        col(4, '<label class="form-label">Note</label>' + textInput("cond-note")) +
-        col(4, labelHtml("writing-material", "ab") + textInput("cond-writing")) +
-        col(4, '<label class="form-label">Characterization</label>' + selectHtml("cond-rend", "conditionWritingRend")));
+        col(3, '<label class="form-label">Note</label>' + textInput("cond-note")) +
+        col(3, langLabelHtml("writing-material") + langSelect("cond-note-lang")) +
+        col(3, labelHtml("writing-material", "ab") + textInput("cond-writing")) +
+        col(3, '<label class="form-label">Characterization</label>' + selectHtml("cond-rend", "conditionWritingRend")));
   }
 
   function fPageLayout() {
     return "<h6>" + esc(L("page-layout", "summary").label) + "</h6>" +
       subSection("page-layout", "desc", "lay-sum-desc", "Add page-layout feature") +
-      row(col(4, '<label class="form-label">Note</label>' + textInput("lay-sum-note"))) +
+      row(col(4, '<label class="form-label">Note</label>' + textInput("lay-sum-note")) +
+        col(4, langLabelHtml("page-layout") + langSelect("lay-sum-note-lang"))) +
       "<h6>" + esc(L("page-layout", "layout").label) + "</h6>" +
       '<div class="layouts-container"></div>' + addBtn("addLayoutBtn", "Add layout");
   }
@@ -263,9 +280,11 @@
 
   function fBinding() {
     return row(
-      col(4, labelHtml("binding-description", "objectType") + selectHtml("bind-type", "bindingObjectType")) +
-      col(4, labelHtml("binding-description", "material") + selectHtml("bind-material", "bindingMaterial")) +
-      col(4, labelHtml("binding-description", "condition") + selectHtml("bind-condition", "bindingConditionKey"))) +
+      col(6, labelHtml("binding-description", "objectType") + selectHtml("bind-type", "bindingObjectType")) +
+      col(6, labelHtml("binding-description", "material") + selectHtml("bind-material", "bindingMaterial"))) +
+      row(
+        col(8, labelHtml("binding-description", "condition") + textInput("bind-condition-text")) +
+        col(4, attrLabelHtml("binding-description", "condition", "key") + selectHtml("bind-condition", "bindingConditionKey"))) +
       subHead("Place of origin", "bind-place", "Add place of origin") +
       dateRow("bind") +
       // dimensions (height/width/depth) is one TEI element; the binding note is
@@ -274,7 +293,8 @@
         col(4, labelHtml("binding-description", "height") + textInput("bind-h")) +
         col(4, labelHtml("binding-description", "width") + textInput("bind-w")) +
         col(4, labelHtml("binding-description", "depth") + textInput("bind-depth"))) +
-      row(col(12, '<label class="form-label">Note</label>' + textarea("bind-note")));
+      row(col(9, '<label class="form-label">Note</label>' + textarea("bind-note")) +
+        col(3, langLabelHtml("binding-description") + langSelect("bind-note-lang")));
   }
 
   function fHeritage() {
@@ -347,6 +367,10 @@
 
   function addMsItemBlock() {
     var n = ++idCounters.msitem;
+    // Text units are user-reorderable (movable). Reordering changes DOM order,
+    // which is what the msContents export serialises; the block's dataset.xmlid
+    // ("msitem-{n}") stays fixed, so the emitted xml:id no longer encodes
+    // position — it is a stable identifier, by design.
     var block = F.addBlock(container("msitems-container"),
       row(col(6, labelHtml("content-description", "msItem") + selectHtml("mi-class", "msItemClass"))) +
       subSection("content-description", "locus", "mi-locus", "Add range of folios") +
@@ -368,7 +392,8 @@
         col(6, '<label class="form-label">Language</label>' + langSelect("mi-exp-lang"))) +
       // note — long-text field full-width; language beneath.
       row(col(12, labelHtml("content-description", "note") + textarea("mi-note"))) +
-      row(col(4, '<label class="form-label">Language</label>' + langSelect("mi-note-lang"))));
+      row(col(4, '<label class="form-label">Language</label>' + langSelect("mi-note-lang"))),
+      { movable: true });
     block.dataset.xmlid = "msitem-" + n;
     F.initTooltips(block);
     return block;
@@ -376,7 +401,9 @@
 
   function addJoinBlock() {
     return F.addBlock(container("joins-container"),
-      row(col(4, labelHtml("codicological-definition", "idno") + textInput("join-idno")) +
+      row(col(4, labelHtml("codicological-definition", "idno") +
+          '<input type="text" class="form-control lod-autocomplete join-idno" data-lod="local-manuscript" ' +
+          'placeholder="Search manuscript records — or type a shelfmark">') +
         col(4, labelHtml("codicological-definition", "citedRange") + textInput("join-folios")) +
         col(4, labelHtml("codicological-definition", "ptr") + '<input type="url" class="form-control join-ptr">')));
   }
@@ -384,7 +411,7 @@
   function addLayoutBlock() {
     var n = ++idCounters.layout;
     var block = F.addBlock(container("layouts-container"),
-      row(col(3, labelHtml("page-layout", "layout") + textInput("ly-lines")) +
+      row(col(3, '<label class="form-label">' + esc(L("page-layout", "layout").attrs.writtenLines.label) + '</label>' + textInput("ly-lines")) +
         col(3, '<label class="form-label">Columns</label>' + textInput("ly-cols")) +
         col(6, labelHtml("page-layout", "locus") + '<div class="input-group"><span class="input-group-text">from</span>' +
           textInput("ly-locus-from") + '<span class="input-group-text">to</span>' + textInput("ly-locus-to") + "</div>")) +
@@ -454,9 +481,10 @@
     return F.addBlock(container("accmat-container"),
       row(col(8, labelHtml("heritage-data", "note") + textInput("acc-note")) +
         col(4, '<label class="form-label">Language</label>' + langSelect("acc-note-lang"))) +
-      row(col(6, labelHtml("heritage-data", "persName") + textInput("acc-person")) +
-        col(6, labelHtml("heritage-data", "quote") + textInput("acc-quote"))) +
-      row(col(4, '<label class="form-label">Quote language</label>' + langSelect("acc-quote-lang", "langQuoteHeritage"))) +
+      row(col(6, labelHtml("heritage-data", "persName") + '<input type="text" class="form-control lod-autocomplete acc-person" data-lod="local-person">')) +
+        row(col(8, labelHtml("heritage-data", "quote") + textInput("acc-quote")) +
+        col(4, '<label class="form-label">Language</label>' + langSelect("acc-quote-lang", "langQuoteHeritage"))) +
+      zoteroLookupHtml("acc-title", "acc-ptr") +
       row(col(4, labelHtml("heritage-data", "title") + textInput("acc-title")) +
         col(3, labelHtml("heritage-data", "citedRange") + textInput("acc-cited")) +
         col(2, '<label class="form-label">Unit</label>' + '<select class="form-select acc-unit">' + optionsHtml(citedUnitList(), "p", "—") + "</select>") +
@@ -471,7 +499,7 @@
       subSection("manuscript-history", "persName", "hv-person", "Add person") +
       row(col(6, labelHtml("manuscript-history", "stamp") + textInput("hv-stamp")) +
         col(6, labelHtml("manuscript-history", "quote") + textInput("hv-quote"))) +
-      row(col(6, '<label class="form-label">Quote language</label>' + langSelect("hv-quote-lang", "langBasic")) +
+      row(col(6, '<label class="form-label">Transcription language</label>' + langSelect("hv-quote-lang", "langBasic")) +
         col(3, '<label class="form-label">Note</label>' + textInput("hv-note")) +
         col(3, '<label class="form-label">Note language</label>' + langSelect("hv-note-lang")));
   }
@@ -487,23 +515,29 @@
   }
 
   // Zotero lookup input — rendered only when the provider is enabled (libraryId set).
-  function zoteroLookupHtml() {
+  // The title/ptr fields it fills are named per-block via data-*-target, so the
+  // same input+handler serve the main Bibliography (bibl-title/bibl-ptr) and the
+  // heritage items (acc-title/acc-ptr).
+  function zoteroLookupHtml(titleCls, ptrCls) {
     var p = window.BA.lod.providers.zotero;
     if (!(p && p.enabled && p.enabled())) return "";
+    titleCls = titleCls || "bibl-title"; ptrCls = ptrCls || "bibl-ptr";
     return row(col(8, labelHtml("bibliography", "bibl") +
       '<input type="text" class="form-control lod-autocomplete zot-lookup" data-lod="zotero" ' +
+      'data-title-target="' + esc(titleCls) + '" data-ptr-target="' + esc(ptrCls) + '" ' +
       'placeholder="Search the project\'s Zotero library">'));
   }
 
   // Fill a bibl block from a selected Zotero result, then clear the lookup input.
+  // Target fields are resolved by class within the containing .ba-block.
   function fillBiblFromZotero(e) {
     var field = e.target;
     if (!field.classList || !field.classList.contains("zot-lookup")) return;
     var block = field.closest ? field.closest(".ba-block") : null;
     if (!block) return;
     var detail = e.detail || {};
-    var titleEl = block.querySelector(".bibl-title");
-    var ptrEl = block.querySelector(".bibl-ptr");
+    var titleEl = block.querySelector("." + (field.dataset.titleTarget || "bibl-title"));
+    var ptrEl = block.querySelector("." + (field.dataset.ptrTarget || "bibl-ptr"));
     // Prefer the formatted CMOS-17 note citation; fall back to the short title.
     var biblTitle = detail.extra && (detail.extra.citation || detail.extra.title);
     if (titleEl && biblTitle) {
@@ -516,6 +550,20 @@
     delete field.dataset.lodUri;
     var badge = field.parentNode && field.parentNode.querySelector(".lod-link");
     if (badge) badge.remove();
+  }
+
+  // Manuscript-join lookup: when a join-idno resolves against a manuscript
+  // record, keep the label as the visible shelfmark and auto-fill the block's
+  // ptr/@target with the record URI (only if empty). The idno itself stays plain
+  // text on export (dataset.lodUri is not serialised), matching the template.
+  function fillJoinPtrFromLookup(e) {
+    var field = e.target;
+    if (!field.classList || !field.classList.contains("join-idno")) return;
+    var block = field.closest ? field.closest(".ba-block") : null;
+    if (!block) return;
+    var detail = e.detail || {};
+    var ptrEl = block.querySelector(".join-ptr");
+    if (ptrEl && !ptrEl.value && detail.uri) ptrEl.value = detail.uri;
   }
 
   function addBiblBlock() {
@@ -578,18 +626,18 @@
       },
 
       support: {
-        material: selVal("sup-material"), note: fieldClass("sup-note"),
+        material: selVal("sup-material"), note: fieldClass("sup-note"), noteLang: fieldClass("sup-note-lang"),
         folios: fieldClass("ext-folios"), height: fieldClass("ext-h"), width: fieldClass("ext-w"),
         folStyle: fieldClass("fol-style"), folRendition: fieldClass("fol-rendition"),
         colFormula: fieldClass("col-formula"), colUnit: fieldClass("col-unit"),
         colCatchwords: subEntries(document.querySelector(FORM), "col-catchwords").map(function (it) { return F.val(it, "col-catchwords"); }).filter(Boolean),
-        colNote: fieldClass("col-note"),
-        condNote: fieldClass("cond-note"), condWriting: fieldClass("cond-writing"), condRend: fieldClass("cond-rend")
+        colNote: fieldClass("col-note"), colNoteLang: fieldClass("col-note-lang"),
+        condNote: fieldClass("cond-note"), condNoteLang: fieldClass("cond-note-lang"), condWriting: fieldClass("cond-writing"), condRend: fieldClass("cond-rend")
       },
 
       layout: {
         sumDesc: subEntries(document.querySelector(FORM), "lay-sum-desc").map(function (it) { return F.val(it, "lay-sum-desc"); }).filter(Boolean),
-        sumNote: fieldClass("lay-sum-note"),
+        sumNote: fieldClass("lay-sum-note"), sumNoteLang: fieldClass("lay-sum-note-lang"),
         layouts: blocks("layouts-container").map(function (b) {
           return {
             xmlid: b.dataset.xmlid, lines: F.val(b, "ly-lines"), cols: F.val(b, "ly-cols"),
@@ -617,7 +665,7 @@
             loci: subEntries(b, "hn-locus").map(function (it) { return { from: F.val(it, "hn-locus-from"), to: F.val(it, "hn-locus-to") }; }).filter(function (l) { return l.from || l.to; }),
             scribes: subEntries(b, "hn-persname").map(function (it) { return { person: F.valUri(it, "hn-scribe"), role: F.val(it, "hn-role") }; }).filter(function (s) { return s.person.value || s.person.uri; }),
             places: subEntries(b, "hn-place").map(function (it) { return F.valUri(it, "hn-place"); }).filter(function (p) { return p.value || p.uri; }),
-            metamarks: subEntries(b, "hn-metamark").map(function (it) { return F.val(it, "hn-metamark"); }).filter(Boolean),
+            metamarks: subEntries(b, "hn-metamark").map(function (it) { return { fn: F.val(it, "hn-metamark"), text: F.val(it, "hn-metamark-text") }; }).filter(function (m) { return m.fn || m.text; }),
             when: hnDate.when, from: hnDate.from, to: hnDate.to,
             note: F.val(b, "hn-note"), noteLang: F.val(b, "hn-note-lang")
           };
@@ -645,16 +693,16 @@
       }),
 
       binding: {
-        type: fieldClass("bind-type"), material: fieldClass("bind-material"), condition: fieldClass("bind-condition"),
+        type: fieldClass("bind-type"), material: fieldClass("bind-material"), condition: fieldClass("bind-condition"), conditionText: fieldClass("bind-condition-text"),
         places: subEntries(document.querySelector(FORM), "bind-place").map(function (it) { return F.valUri(it, "bind-place"); }).filter(function (p) { return p.value || p.uri; }),
         when: bindDate.when, from: bindDate.from, to: bindDate.to,
         height: fieldClass("bind-h"), width: fieldClass("bind-w"), depth: fieldClass("bind-depth"),
-        note: fieldClass("bind-note")
+        note: fieldClass("bind-note"), noteLang: fieldClass("bind-note-lang")
       },
 
       accMats: blocks("accmat-container").map(function (b) {
         return {
-          note: F.val(b, "acc-note"), noteLang: F.val(b, "acc-note-lang"), person: F.val(b, "acc-person"),
+          note: F.val(b, "acc-note"), noteLang: F.val(b, "acc-note-lang"), person: F.valUri(b, "acc-person"),
           quote: F.val(b, "acc-quote"), quoteLang: F.val(b, "acc-quote-lang"),
           title: F.val(b, "acc-title"), cited: F.val(b, "acc-cited"), unit: F.val(b, "acc-unit"), ptr: F.val(b, "acc-ptr")
         };
@@ -783,23 +831,23 @@
 
   function buildObjectDesc(d) {
     var s = d.support;
-    var support = wrap("support", null, [el("material", null, esc(s.material)), el("note", { "xml:lang": "" }, esc(s.note))]);
+    var support = wrap("support", null, [el("material", null, esc(s.material)), el("note", { "xml:lang": s.noteLang }, esc(s.note))]);
     var measure = s.folios ? el("measure", { unit: "folio" }, esc(s.folios)) : "";
     var extent = wrap("extent", null, [measure, dims(s.height, s.width)]);
     var foliation = (s.folStyle || s.folRendition) ? el("foliation", { style: s.folStyle, rendition: s.folRendition }) : "";
     var collation = wrap("collation", null, [
       el("formula", null, esc(s.colFormula)), el("unit", null, esc(s.colUnit))
     ].concat(s.colCatchwords.map(function (c) { return el("catchwords", null, esc(c)); }))
-      .concat([el("note", { "xml:lang": "" }, esc(s.colNote))]));
+      .concat([el("note", { "xml:lang": s.colNoteLang }, esc(s.colNote))]));
     var condition = wrap("condition", null, [
-      el("note", { "xml:lang": "" }, esc(s.condNote)),
+      el("note", { "xml:lang": s.condNoteLang }, esc(s.condNote)),
       (s.condWriting || s.condRend) ? el("ab", { type: "writing", rend: s.condRend }, esc(s.condWriting)) : ""
     ]);
     var supportDesc = wrap("supportDesc", null, [support, extent, foliation, collation, condition]);
 
     var ly = d.layout;
     var summary = wrap("summary", null, ly.sumDesc.map(function (f) { return el("desc", null, esc(f)); })
-      .concat([el("note", { "xml:lang": "" }, esc(ly.sumNote))]));
+      .concat([el("note", { "xml:lang": ly.sumNoteLang }, esc(ly.sumNote))]));
     var layouts = ly.layouts.map(function (l) {
       // Template order within layout: locus, dimensions, metamark*, ab[ruling]*, ab[pricking]*.
       return wrap("layout", { writtenLines: l.lines, columns: l.cols, "xml:id": l.xmlid }, [
@@ -823,7 +871,7 @@
         hn.loci.map(function (l) { return locus(l.from, l.to); }),
         hn.scribes.map(function (s) { return el("persName", { ref: s.person.uri, role: s.role }, esc(s.person.value)); }),
         hn.places.map(function (p) { return el("placeName", { ref: p.uri }, esc(p.value)); }),
-        hn.metamarks.map(function (m) { return el("metamark", { "function": m }); }),
+        hn.metamarks.map(function (m) { return el("metamark", { "function": m.fn }, esc(m.text)); }),
         [(hn.when || hn.from || hn.to) ? el("origDate", { when: hn.when, from: hn.from, to: hn.to }) : ""],
         [hn.note ? el("note", { "xml:lang": hn.noteLang }, esc(hn.note)) : ""]
       );
@@ -875,10 +923,10 @@
       .concat([
         (b.when || b.from || b.to) ? el("origDate", { when: b.when, from: b.from, to: b.to }) : "",
         b.material ? el("material", null, esc(b.material)) : "",
-        b.note ? el("note", { "xml:lang": "" }, esc(b.note)) : "",
+        b.note ? el("note", { "xml:lang": b.noteLang }, esc(b.note)) : "",
         dims(b.height, b.width, b.depth)
       ]));
-    var condition = b.condition ? el("condition", { key: b.condition }) : "";
+    var condition = (b.condition || b.conditionText) ? el("condition", { key: b.condition }, esc(b.conditionText)) : "";
     var binding = wrap("binding", null, [deco, condition]);
     return wrap("bindingDesc", null, [binding]);
   }
@@ -888,7 +936,7 @@
       var bibl = wrap("bibl", null, [titleEl(a.title), citedEl(a.unit, a.cited), ptrEl(a.ptr)]);
       return wrap("item", null, [
         a.note ? el("note", { "xml:lang": a.noteLang }, esc(a.note)) : "",
-        a.person ? el("persName", null, esc(a.person)) : "",
+        a.person.value ? el("persName", { ref: a.person.uri }, esc(a.person.value)) : "",
         a.quote ? el("quote", { "xml:lang": a.quoteLang }, esc(a.quote)) : "",
         bibl
       ]);
@@ -968,7 +1016,21 @@
   }
 
   function setVal(cls, v) { var el = document.querySelector(FORM + " ." + cls); if (el) el.value = v || ""; }
-  function setB(block, cls, v) { var el = block.querySelector("." + cls); if (el) el.value = v || ""; }
+  function setB(block, cls, v) {
+    var el = block.querySelector("." + cls);
+    if (!el) return;
+    // For selects, keep values absent from the vocab visible (e.g. legacy/crossed
+    // ruling↔pricking values) by appending a temporary "(legacy)" option so they
+    // round-trip on export instead of being silently dropped.
+    if (el.tagName === "SELECT" && v &&
+        !Array.prototype.some.call(el.options, function (o) { return o.value === v; })) {
+      var opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v + " (legacy)";
+      el.appendChild(opt);
+    }
+    el.value = v || "";
+  }
   function setMultiCls(cls, values) {
     var el = document.querySelector(FORM + " ." + cls);
     if (el) Array.prototype.forEach.call(el.options, function (o) { o.selected = values.indexOf(o.value) !== -1; });
@@ -1077,7 +1139,7 @@
       var sd = directChild(od, "supportDesc");
       if (sd) {
         var support = directChild(sd, "support");
-        if (support) { setSel("sup-material", U.text(directChild(support, "material"))); setVal("sup-note", U.text(directChild(support, "note"))); }
+        if (support) { setSel("sup-material", U.text(directChild(support, "material"))); var supNote = directChild(support, "note"); setVal("sup-note", U.text(supNote)); setVal("sup-note-lang", attr(supNote, "xml:lang")); }
         var extent = directChild(sd, "extent");
         if (extent) { setVal("ext-folios", U.text(directChild(extent, "measure"))); var dm = directChild(extent, "dimensions"); if (dm) { setVal("ext-h", U.text(directChild(dm, "height"))); setVal("ext-w", U.text(directChild(dm, "width"))); } }
         var fol = directChild(sd, "foliation");
@@ -1086,10 +1148,10 @@
         if (col) {
           setVal("col-formula", U.text(directChild(col, "formula"))); setVal("col-unit", U.text(directChild(col, "unit")));
           directChildren(col, "catchwords").forEach(function (cw) { var it = addSubTo(document.querySelector(FORM), "col-catchwords"); setB(it, "col-catchwords", U.text(cw)); });
-          setVal("col-note", U.text(directChild(col, "note")));
+          var colNote = directChild(col, "note"); setVal("col-note", U.text(colNote)); setVal("col-note-lang", attr(colNote, "xml:lang"));
         }
         var cond = directChild(sd, "condition");
-        if (cond) { setVal("cond-note", U.text(directChild(cond, "note"))); var wab = directChild(cond, "ab"); setVal("cond-writing", U.text(wab)); setVal("cond-rend", attr(wab, "rend")); }
+        if (cond) { var condNote = directChild(cond, "note"); setVal("cond-note", U.text(condNote)); setVal("cond-note-lang", attr(condNote, "xml:lang")); var wab = directChild(cond, "ab"); setVal("cond-writing", U.text(wab)); setVal("cond-rend", attr(wab, "rend")); }
       }
       var ld = directChild(od, "layoutDesc");
       if (ld) {
@@ -1097,7 +1159,7 @@
         if (lsum) {
           // legacy: a single <desc>"a; b"</desc> splits into one entry per feature.
           directChildren(lsum, "desc").forEach(function (dsc) { splitList(U.text(dsc)).forEach(function (f) { var it = addSubTo(document.querySelector(FORM), "lay-sum-desc"); setB(it, "lay-sum-desc", f); }); });
-          setVal("lay-sum-note", U.text(directChild(lsum, "note")));
+          var lsumNote = directChild(lsum, "note"); setVal("lay-sum-note", U.text(lsumNote)); setVal("lay-sum-note-lang", attr(lsumNote, "xml:lang"));
         }
         directChildren(ld, "layout").forEach(function (ly) {
           var block = addLayoutBlock();
@@ -1125,7 +1187,7 @@
         directChildren(hn, "locus").forEach(function (l) { var it = addSubTo(block, "hn-locus"); setB(it, "hn-locus-from", attr(l, "from")); setB(it, "hn-locus-to", attr(l, "to")); });
         directChildren(hn, "persName").forEach(function (pn) { var it = addSubTo(block, "hn-persname"); setLodB(it, "hn-scribe", U.text(pn), attr(pn, "ref"), "person"); setB(it, "hn-role", attr(pn, "role")); });
         directChildren(hn, "placeName").forEach(function (pl) { var it = addSubTo(block, "hn-place"); setLodB(it, "hn-place", U.text(pl), attr(pl, "ref"), "place"); });
-        directChildren(hn, "metamark").forEach(function (mm) { var it = addSubTo(block, "hn-metamark"); setB(it, "hn-metamark", attr(mm, "function")); });
+        directChildren(hn, "metamark").forEach(function (mm) { var it = addSubTo(block, "hn-metamark"); setB(it, "hn-metamark", attr(mm, "function")); setB(it, "hn-metamark-text", U.text(mm)); });
         var odt = directChild(hn, "origDate"); if (odt) F.setDateGroup(block, "hn", { when: attr(odt, "when"), from: attr(odt, "from"), to: attr(odt, "to") });
         var note = directChild(hn, "note"); setB(block, "hn-note", U.text(note)); setB(block, "hn-note-lang", attr(note, "xml:lang"));
       });
@@ -1176,10 +1238,10 @@
           directChildren(deco, "origPlace").forEach(function (op) { var it = addSubTo(document.querySelector(FORM), "bind-place"); setLodB(it, "bind-place", U.text(op), attr(op, "ref"), "place"); });
           var odt2 = directChild(deco, "origDate"); if (odt2) F.setDateGroup(document.querySelector(FORM), "bind", { when: attr(odt2, "when"), from: attr(odt2, "from"), to: attr(odt2, "to") });
           setVal("bind-material", U.text(directChild(deco, "material")));
-          setVal("bind-note", U.text(directChild(deco, "note")));
+          var bindNote = directChild(deco, "note"); setVal("bind-note", U.text(bindNote)); setVal("bind-note-lang", attr(bindNote, "xml:lang"));
           var dm = directChild(deco, "dimensions"); if (dm) { setVal("bind-h", U.text(directChild(dm, "height"))); setVal("bind-w", U.text(directChild(dm, "width"))); setVal("bind-depth", U.text(directChild(dm, "depth"))); }
         }
-        var cond2 = directChild(binding, "condition"); if (cond2) setVal("bind-condition", attr(cond2, "key"));
+        var cond2 = directChild(binding, "condition"); if (cond2) { setVal("bind-condition", attr(cond2, "key")); setVal("bind-condition-text", U.text(cond2)); }
       }
     }
 
@@ -1189,7 +1251,7 @@
       if (alist) directChildren(alist, "item").forEach(function (it) {
         var block = addAccMatBlock();
         var note = directChild(it, "note"); setB(block, "acc-note", U.text(note)); setB(block, "acc-note-lang", attr(note, "xml:lang"));
-        setB(block, "acc-person", U.text(directChild(it, "persName")));
+        var accPn = directChild(it, "persName"); setLodB(block, "acc-person", U.text(accPn), attr(accPn, "ref"), "person");
         var qt = directChild(it, "quote"); setB(block, "acc-quote", U.text(qt)); setB(block, "acc-quote-lang", attr(qt, "xml:lang"));
         var bl = directChild(it, "bibl");
         if (bl) { setB(block, "acc-title", U.text(directChild(bl, "title"))); var cr = directChild(bl, "citedRange"); setB(block, "acc-cited", U.text(cr)); if (cr) setB(block, "acc-unit", attr(cr, "unit")); setB(block, "acc-ptr", attr(directChild(bl, "ptr"), "target")); }
@@ -1415,6 +1477,7 @@
 
     // Zotero bibliography lookup -> fill title + ptr, clear the lookup.
     document.addEventListener("ba-lod-selected", fillBiblFromZotero);
+    document.addEventListener("ba-lod-selected", fillJoinPtrFromLookup);
 
     var up = document.getElementById("fileUpload");
     if (up) {

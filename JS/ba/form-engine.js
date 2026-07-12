@@ -94,10 +94,21 @@
   // Fields inside a block are addressed by CLASS name, not indexed name
   // attributes (deletion-proof).
 
-  form.addBlock = function (containerEl, innerHtml) {
+  // opts.movable adds up/down reorder buttons in the top-right control cluster,
+  // to the left of the delete button. Non-movable blocks are byte-for-byte
+  // unchanged, so other block types are unaffected.
+  form.addBlock = function (containerEl, innerHtml, opts) {
+    opts = opts || {};
     var div = document.createElement("div");
     div.className = "border rounded p-3 mb-3 ba-block position-relative";
+    var moveBtns = opts.movable
+      ? '<button type="button" class="btn btn-sm btn-link text-secondary p-0 ba-move-up position-absolute top-0 end-0 mt-2 me-5" ' +
+          'aria-label="Move up"><i class="bi bi-arrow-up"></i></button>' +
+        '<button type="button" class="btn btn-sm btn-link text-secondary p-0 ba-move-down position-absolute top-0 end-0 mt-2 me-4" ' +
+          'aria-label="Move down"><i class="bi bi-arrow-down"></i></button>'
+      : "";
     div.innerHTML =
+      moveBtns +
       '<button type="button" class="btn-close ba-block-delete position-absolute top-0 end-0 m-2" ' +
       'aria-label="Delete entry"></button>' + innerHtml;
     containerEl.appendChild(div);
@@ -110,6 +121,35 @@
     if (!btn) return;
     var block = btn.closest(".ba-block");
     if (block) block.remove();
+  });
+
+  // Generic block reordering (opt-in via addBlock(.., { movable: true })): moves
+  // any .ba-block up/down among its sibling blocks within the same container.
+  // No-op at the edges. Moving changes DOM order — which is what export
+  // serialises — but leaves each block's dataset.xmlid untouched (ids identify,
+  // they do not encode position). Marks the form dirty directly (no input event).
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest) return;
+    var up = e.target.closest(".ba-move-up");
+    var down = e.target.closest(".ba-move-down");
+    if (!up && !down) return;
+    var block = (up || down).closest(".ba-block");
+    if (!block || !block.parentNode) return;
+    function siblingBlock(el, dir) {
+      var s = dir === "up" ? el.previousElementSibling : el.nextElementSibling;
+      while (s && !(s.classList && s.classList.contains("ba-block"))) {
+        s = dir === "up" ? s.previousElementSibling : s.nextElementSibling;
+      }
+      return s;
+    }
+    if (up) {
+      var prev = siblingBlock(block, "up");
+      if (prev) block.parentNode.insertBefore(block, prev);
+    } else {
+      var next = siblingBlock(block, "down");
+      if (next) block.parentNode.insertBefore(next, block);
+    }
+    form._dirty = true;
   });
 
   form.blocks = function (containerEl) {

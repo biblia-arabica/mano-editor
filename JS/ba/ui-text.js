@@ -718,7 +718,7 @@ window.BA.uiText = {
         "l": "Tables"
       }
     ],
-    "rulingPricking": [
+    "pricking": [
       {
         "v": "There is pricking",
         "l": "There is pricking"
@@ -730,18 +730,6 @@ window.BA.uiText = {
       {
         "v": "No pricking can be seen",
         "l": "No pricking can be seen"
-      },
-      {
-        "v": "There is ruling",
-        "l": "There is ruling"
-      },
-      {
-        "v": "No ruling",
-        "l": "No ruling"
-      },
-      {
-        "v": "No ruling can be seen",
-        "l": "No ruling can be seen"
       },
       {
         "v": "Prickings for horizontal lines",
@@ -762,6 +750,20 @@ window.BA.uiText = {
       {
         "v": "Double prickings for certain lines",
         "l": "Double prickings for certain lines"
+      }
+    ],
+    "ruling": [
+      {
+        "v": "There is ruling",
+        "l": "There is ruling"
+      },
+      {
+        "v": "No ruling",
+        "l": "No ruling"
+      },
+      {
+        "v": "No ruling can be seen",
+        "l": "No ruling can be seen"
       },
       {
         "v": "Framework only",
@@ -2413,7 +2415,7 @@ window.BA.uiText = {
           }
         },
         "height": {
-          "required": true,
+          "required": false,
           "label": "Height of writing area",
           "help": "Measure the height in millimeters.",
           "attrs": {
@@ -2424,7 +2426,7 @@ window.BA.uiText = {
           }
         },
         "width": {
-          "required": true,
+          "required": false,
           "label": "Width of writing area",
           "help": "Measure the width in millimeters.",
           "attrs": {
@@ -2468,7 +2470,7 @@ window.BA.uiText = {
           "attrs": {
             "writtenLines": {
               "required": false,
-              "label": "Number of written lines"
+              "label": "Number of lines"
             },
             "columns": {
               "required": false,
