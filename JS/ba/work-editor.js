@@ -772,11 +772,13 @@
     F.trackDirty(document.getElementById("workForm"));
     F.installUnloadGuard();
 
-    // ?load={id} deep link: import data/works/{id}.xml on init.
-    loadFromQuery();
+    // ?view={id} read-only view mode takes precedence over the ?load={id} deep
+    // link; both import data/works/{id}.xml on init.
+    if (!loadViewFromQuery()) loadFromQuery();
 
     document.addEventListener("click", function (e) {
       if (!e.target.closest) return;
+      if (F.isViewMode()) return;
       if (e.target.closest("#addTitleBtn")) addTitleBlock();
       if (e.target.closest("#addAuthorBtn")) addAuthorBlock();
       if (e.target.closest("#addPersonBtn")) addPersonBlock();
@@ -857,6 +859,70 @@
         .then(function (text) { importWorkXML(text, (rec.file || "").split("/").pop()); F.markClean(); })
         .catch(function (err) { showAlert("Could not load record " + id + ": " + err.message, "danger"); });
     });
+  }
+
+  // ?view={id}: import the record (same path as ?load=), then lock the form
+  // read-only. Returns true when a valid ?view= id was present (so init skips
+  // the ?load= path). _viewMode is set before import so badges rendered during
+  // import pick up their internal "view this record" links.
+  function loadViewFromQuery() {
+    var id = new URLSearchParams(location.search).get("view");
+    if (!id || !/^\d+$/.test(id)) return false;
+    window.BA.authority.load("work").then(function (recs) {
+      var rec = null;
+      for (var i = 0; i < recs.length; i++) { if (String(recs[i].id) === id) { rec = recs[i]; break; } }
+      if (!rec) {
+        showAlert("Record " + id + " not found in the work index — rebuild the index if the file was just added", "warning");
+        return;
+      }
+      fetch(rec.file)
+        .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
+        .then(function (text) {
+          F._viewMode = true;
+          importWorkXML(text, (rec.file || "").split("/").pop());
+          F.enterViewMode(document.getElementById("workForm"), {
+            type: "work",
+            id: id,
+            editorHref: "work-editor.html?load=" + id,
+            collectionHref: "collection-works.html"
+          });
+          buildRevisionHistory();
+        })
+        .catch(function (err) { showAlert("Could not load record " + id + ": " + err.message, "danger"); });
+    });
+    return true;
+  }
+
+  // Read-only revision-history table under the Record block (view mode only).
+  // Each imported <change> becomes one row: resolved editor name, date, note.
+  // Appended AFTER F.tagEmpty so this content-only section is never folded away.
+  function buildRevisionHistory() {
+    if (!importedChanges || !importedChanges.length) return;
+    var editorsById = {};
+    (window.BA.config.editors || []).forEach(function (ed) { editorsById[ed.id] = ed.name; });
+
+    var rows = importedChanges.map(function (chStr) {
+      var el = null;
+      try { el = U.q(U.parse("<ba-root>" + chStr + "</ba-root>"), "change"); } catch (e) { el = null; }
+      if (!el) return "";
+      var who = (el.getAttribute("who") || "").replace(/^#/, "");
+      var when = el.getAttribute("when") || "";
+      var note = U.text(el);
+      var name = editorsById[who] || who;
+      return "<tr><td>" + U.esc(name) + "</td><td>" + U.esc(when) + "</td><td>" + U.esc(note) + "</td></tr>";
+    }).filter(Boolean).join("");
+    if (!rows) return;
+
+    var section = document.createElement("div");
+    section.className = "border rounded p-3 mb-4 ba-revision-history";
+    section.innerHTML =
+      "<h5>Revision history</h5>" +
+      '<table class="table table-sm mb-0"><thead><tr>' +
+      "<th>Editor</th><th>Date</th><th>Note</th></tr></thead><tbody>" + rows + "</tbody></table>";
+
+    var accordion = document.getElementById("workAccordion");
+    if (accordion && accordion.parentNode) accordion.parentNode.insertBefore(section, accordion);
+    else document.getElementById("workForm").appendChild(section);
   }
 
   document.addEventListener("DOMContentLoaded", init);

@@ -468,3 +468,19 @@ section h2 {
 .data-enter textarea.form-control {
   resize: vertical;
 }
+
+/* R5: read-only view mode. Hide the editing chrome, fold empty fields away,
+   and render disabled inputs as plain text (the "display" feel). */
+body.view-mode .ba-block-delete, body.view-mode .ba-move-up, body.view-mode .ba-move-down,
+body.view-mode .lod-clear-btn, body.view-mode [id^="add"][id$="Btn"],
+body.view-mode .sublist-add, body.view-mode .sublist-del,
+body.view-mode #previewBtn, body.view-mode #downloadBtn, body.view-mode #submitRepoBtn,
+body.view-mode #newRecordBtn, body.view-mode #openRepoBtn, body.view-mode label[for="fileUpload"]
+  { display: none !important; }
+body.view-mode.hide-empty .ba-empty { display: none !important; }
+/* Read-only "display" feel: labels are quiet captions, data reads as strong text. */
+body.view-mode .form-control:disabled, body.view-mode .form-select:disabled
+  { background: transparent; border-color: transparent; color: #3b3328; font-weight: 500; opacity: 1; padding-left: 0; }
+body.view-mode .form-label
+  { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
+    color: #9c9184; margin-bottom: 0.05rem; }

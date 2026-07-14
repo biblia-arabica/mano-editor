@@ -62,6 +62,22 @@
       badge.remove();
     });
 
+    // In view mode, a project-internal URI gets a small "view this record" link
+    // next to the external-link icon.
+    if (form._viewMode) {
+      var viewLink = form.viewLinkFor(uri);
+      if (viewLink) {
+        var extA = badge.querySelector('a[data-bs-toggle="tooltip"]');
+        if (extA) {
+          extA.insertAdjacentHTML("afterend",
+            '<a href="' + viewLink + '" class="ms-1 text-decoration-none ba-view-link keep-active" ' +
+            'data-bs-toggle="tooltip" title="View this record">' +
+            '<i class="bi bi-box-arrow-in-right"></i></a>');
+          if (hasBootstrap()) new bootstrap.Tooltip(badge.querySelector(".ba-view-link"));
+        }
+      }
+    }
+
     return badge;
   };
 
@@ -117,6 +133,7 @@
 
   // One delegated listener removes any block whose delete button is clicked.
   document.addEventListener("click", function (e) {
+    if (form._viewMode) return;
     var btn = e.target.closest ? e.target.closest(".ba-block-delete") : null;
     if (!btn) return;
     var block = btn.closest(".ba-block");
@@ -129,6 +146,7 @@
   // serialises — but leaves each block's dataset.xmlid untouched (ids identify,
   // they do not encode position). Marks the form dirty directly (no input event).
   document.addEventListener("click", function (e) {
+    if (form._viewMode) return;
     if (!e.target.closest) return;
     var up = e.target.closest(".ba-move-up");
     var down = e.target.closest(".ba-move-down");
@@ -306,15 +324,18 @@
   // interception (precedent: metadata-new.js exit warning).
 
   form._dirty = false;
+  form._viewMode = false; // set by enterViewMode; neutralises the dirty guard
   var dirtyForm = null;
   var dirtyListening = false;
 
   function onDirtyEvent(e) {
+    if (form._viewMode) return;
     if (dirtyForm && dirtyForm.contains(e.target)) form._dirty = true;
   }
 
   // Idempotent: repeat calls just replace the tracked form, never stacking listeners.
   form.trackDirty = function (formEl) {
+    if (form._viewMode) return;
     dirtyForm = formEl || null;
     if (!dirtyListening) {
       document.addEventListener("input", onDirtyEvent);
@@ -328,9 +349,11 @@
 
   var unloadGuardInstalled = false;
   form.installUnloadGuard = function () {
+    if (form._viewMode) return;
     if (unloadGuardInstalled) return;
     unloadGuardInstalled = true;
     window.addEventListener("beforeunload", function (event) {
+      if (form._viewMode) return;
       if (!form.isDirty()) return;
       // Browsers show their own generic prompt; the string is required to trigger it.
       event.preventDefault();
@@ -572,5 +595,221 @@
     return '<select multiple size="2" class="form-select src-select' + (cls ? " " + cls : "") + '"' +
       (name ? ' name="' + name + '"' : "") +
       ' title="Ctrl/Cmd-click to select several"></select>';
+  };
+
+  // ---- Read-only view mode (R5) ----
+  // enterViewMode locks an editor's rendered form for full-record preview: it
+  // disables every control, hides the editing chrome (via CSS), expands all
+  // sections, tags empty fields/blocks/sections so they can be folded away, and
+  // shows a sticky banner. The dirty guard is neutralised while _viewMode is set
+  // (see onDirtyEvent / trackDirty / installUnloadGuard above).
+
+  form.isViewMode = function () { return !!form._viewMode; };
+
+  // Editor page per entity type (for internal "view this record" links).
+  var VIEW_EDITOR_PAGES = {
+    manuscript: "editor.html",
+    person: "person-editor.html",
+    place: "place-editor.html",
+    work: "work-editor.html"
+  };
+
+  // For a project record URI shaped {baseUri}/{entityPath}/{id} that resolves in
+  // its authority index, return "{editorPage}?view={id}"; otherwise null.
+  form.viewLinkFor = function (uri) {
+    if (!uri || !window.BA.config) return null;
+    var cfg = window.BA.config;
+    var paths = cfg.entityPaths || {};
+    var types = Object.keys(paths);
+    for (var i = 0; i < types.length; i++) {
+      var type = types[i];
+      var prefix = cfg.baseUri + "/" + paths[type] + "/";
+      if (uri.indexOf(prefix) !== 0) continue;
+      var id = uri.slice(prefix.length);
+      if (!/^\d+$/.test(id)) return null;
+      if (window.BA.authority && window.BA.authority.resolve(type, uri)) {
+        return (VIEW_EDITOR_PAGES[type] || (type + "-editor.html")) + "?view=" + id;
+      }
+      return null;
+    }
+    return null;
+  };
+
+  function controlIsEmpty(el) {
+    if (el.type === "checkbox" || el.type === "radio") return !el.checked;
+    var v = (el.value || "").trim();
+    return v === "" && !el.dataset.lodUri;
+  }
+
+  // A scope "has content" if any control is non-empty OR it carries a
+  // value-bearing reference anchor (e.g. person idno rows render the URI as a
+  // link with no form control of their own). Used to decide block/section
+  // emptiness so content-only blocks are not folded away.
+  function scopeHasContent(scope) {
+    var controls = scope.querySelectorAll("input, select, textarea");
+    if (Array.prototype.some.call(controls, function (c) { return !controlIsEmpty(c); })) return true;
+    return !!scope.querySelector("a[data-uri], .idno-uri-val");
+  }
+
+  function hasColClass(el) {
+    return el.classList && Array.prototype.some.call(el.classList, function (c) {
+      return /^col($|-)/.test(c);
+    });
+  }
+  function isContainerClass(el) {
+    return el.classList && Array.prototype.some.call(el.classList, function (c) {
+      return /-container$/.test(c);
+    });
+  }
+  function closestColWrapper(el) {
+    var n = el.parentElement;
+    while (n) { if (hasColClass(n)) return n; n = n.parentElement; }
+    return null;
+  }
+
+  // Bottom-up emptiness pass: field wrappers, then repeatable blocks, then block
+  // sub-containers (with their heading + add-button wrapper), then accordion
+  // items / bordered sections. Adds class ba-empty; CSS folds .ba-empty away
+  // while the body has "view-mode hide-empty".
+  form.tagEmpty = function (formEl) {
+    // 1. field wrappers: a .col-* with exactly one control + a label.
+    Array.prototype.forEach.call(formEl.querySelectorAll("[class]"), function (el) {
+      if (!hasColClass(el)) return;
+      if (!el.querySelector("label")) return;
+      var controls = el.querySelectorAll("input, select, textarea");
+      if (controls.length === 1 && controlIsEmpty(controls[0])) el.classList.add("ba-empty");
+    });
+
+    // 2. repeatable blocks with no content.
+    Array.prototype.forEach.call(formEl.querySelectorAll(".ba-block"), function (b) {
+      if (!scopeHasContent(b)) b.classList.add("ba-empty");
+    });
+
+    // 3. block sub-containers with zero non-empty blocks — plus their heading
+    // (previous sibling) and add-button wrapper (next sibling).
+    Array.prototype.forEach.call(formEl.querySelectorAll("[class]"), function (c) {
+      if (!isContainerClass(c)) return;
+      var nonEmpty = form.blocks(c).filter(function (b) {
+        return !b.classList.contains("ba-empty");
+      });
+      if (nonEmpty.length) return;
+      c.classList.add("ba-empty");
+      var prev = c.previousElementSibling;
+      if (prev && /^H[1-6]$/.test(prev.tagName)) prev.classList.add("ba-empty");
+      var next = c.nextElementSibling;
+      if (next && (next.tagName === "BUTTON" ||
+        (next.querySelector && next.querySelector("button")))) {
+        next.classList.add("ba-empty");
+      }
+    });
+
+    // 4. accordion items and top-level bordered sections with no content.
+    Array.prototype.forEach.call(formEl.querySelectorAll(".accordion-item"), function (item) {
+      if (!scopeHasContent(item)) item.classList.add("ba-empty");
+    });
+    Array.prototype.forEach.call(formEl.querySelectorAll(".border"), function (sec) {
+      if (sec.classList.contains("ba-block")) return;
+      if (sec.closest && sec.closest(".ba-block")) return;
+      if (!scopeHasContent(sec)) sec.classList.add("ba-empty");
+    });
+
+    // 5. sub-group headings (h5/h6): a heading is empty when everything that
+    // follows it — up to the next heading sibling — has no content. Stops a
+    // heading (e.g. "Note", "Role") from dangling over hidden empty fields.
+    Array.prototype.forEach.call(formEl.querySelectorAll("h5, h6"), function (h) {
+      var sib = h.nextElementSibling;
+      var hasContent = false;
+      while (sib && !/^H[1-6]$/.test(sib.tagName)) {
+        if (scopeHasContent(sib)) { hasContent = true; break; }
+        sib = sib.nextElementSibling;
+      }
+      if (!hasContent) h.classList.add("ba-empty");
+    });
+
+    // 6. select-with-other pairs read as plain values in view mode: a value
+    // entered via "Other…" shows as the value itself (hide the "Other…" select,
+    // keep the text input); a fully empty pair folds like any empty field.
+    Array.prototype.forEach.call(formEl.querySelectorAll(".select-with-other"), function (sel) {
+      var cls = sel.dataset ? sel.dataset.swo : null;
+      var other = (cls && sel.parentNode) ? sel.parentNode.querySelector("." + cls + "-other") : null;
+      var isOther = sel.value === OTHER;
+      var effective = isOther ? (other ? (other.value || "").trim() : "") : (sel.value || "").trim();
+      if (!effective) {
+        var wrap = closestColWrapper(sel);
+        if (wrap) wrap.classList.add("ba-empty");
+      } else if (isOther) {
+        sel.classList.add("d-none"); // suppress the "Other…" label; value shows via the text input
+      }
+    });
+  };
+
+  function buildViewBanner(opts) {
+    var esc = window.BA.util.esc;
+    var type = opts.type || "";
+    var typeLabel = type ? type.charAt(0).toUpperCase() + type.slice(1) : "";
+    var bar = document.createElement("div");
+    bar.id = "baViewBanner";
+    bar.className = "ba-view-banner d-flex flex-wrap align-items-center justify-content-between " +
+      "gap-2 px-3 py-2 border-bottom bg-warning-subtle";
+    bar.style.position = "sticky";
+    bar.style.top = "0";
+    bar.style.zIndex = "1030";
+    bar.innerHTML =
+      '<span class="fw-semibold">Read-only view — ' + esc(typeLabel) + " " +
+      esc(String(opts.id || "")) + "</span>" +
+      '<span class="d-flex flex-wrap align-items-center gap-2">' +
+      '<button type="button" class="btn btn-sm btn-primary keep-active ba-view-open">Open in editor</button>' +
+      '<button type="button" class="btn btn-sm btn-outline-secondary keep-active ba-view-back">Back to collection</button>' +
+      '<button type="button" class="btn btn-sm btn-outline-secondary keep-active ba-view-toggle">Show empty fields</button>' +
+      "</span>";
+    return bar;
+  }
+
+  // opts = { type, id, editorHref, collectionHref }
+  form.enterViewMode = function (formEl, opts) {
+    opts = opts || {};
+    document.body.classList.add("view-mode", "hide-empty");
+
+    // Disable every control except .keep-active (badge <a> links are unaffected).
+    Array.prototype.forEach.call(
+      formEl.querySelectorAll("input, select, textarea, button"),
+      function (el) {
+        if (el.classList && el.classList.contains("keep-active")) return;
+        el.disabled = true;
+      }
+    );
+
+    // Sticky banner, placed directly under the navbar.
+    var old = document.getElementById("baViewBanner");
+    if (old) old.remove();
+    var bar = buildViewBanner(opts);
+    var navbar = document.querySelector("nav.navbar");
+    if (navbar && navbar.parentNode) navbar.parentNode.insertBefore(bar, navbar.nextSibling);
+    else document.body.insertBefore(bar, document.body.firstChild);
+
+    bar.querySelector(".ba-view-open").addEventListener("click", function () {
+      if (opts.editorHref) location.href = opts.editorHref;
+    });
+    bar.querySelector(".ba-view-back").addEventListener("click", function () {
+      if (opts.collectionHref) location.href = opts.collectionHref;
+    });
+    var toggle = bar.querySelector(".ba-view-toggle");
+    toggle.addEventListener("click", function () {
+      var hidden = document.body.classList.toggle("hide-empty");
+      toggle.textContent = hidden ? "Show empty fields" : "Hide empty fields";
+    });
+
+    // Expand every accordion section.
+    Array.prototype.forEach.call(formEl.querySelectorAll(".accordion-collapse"), function (p) {
+      p.classList.add("show");
+    });
+    Array.prototype.forEach.call(formEl.querySelectorAll(".accordion-button"), function (b) {
+      b.classList.remove("collapsed");
+      b.setAttribute("aria-expanded", "true");
+    });
+
+    form.tagEmpty(formEl);
+    form.markClean();
+    form._viewMode = true;
   };
 })();
