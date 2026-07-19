@@ -84,11 +84,6 @@
             <li class="nav-item"><a class="nav-link active" href="documentation.html">Documentation</a></li>
             <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
             <li class="nav-item"><a class="nav-link" href="resources.html">Resources</a></li>
-            <hr class="my-3">
-            <div class="text-center">
-                <h6 class="mb-3">Participate in shaping the future of &lt;MANO&gt;</h6>
-                <a href="https://survey.zdv.uni-mainz.de/index.php/822542?newtest=Y&lang=en" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">Take the user survey</a>
-            </div>
           </ul>
         </div>
       </div>
@@ -430,6 +425,20 @@
               <h5>Output</h5>
               <p>Each editor produces a single <strong>TEI-XML</strong> file named <code>{id}.xml</code>, ready to be committed to the record type's folder under <code>data/</code> (<code>data/manuscripts/</code>, <code>data/persons/</code>, <code>data/places/</code>, or <code>data/works/</code>). Once committed, the record is picked up by the authority index and appears in the <a href="collection.html">Data Collection</a> (see <em>Customization → Data and index lifecycle</em>).</p>
             </div>
+
+            <div class="mt-5">
+              <h5>Formatting long texts</h5>
+              <p>Summary, note and quote fields open a small rich-text editor with a toolbar of exactly five actions. Each one produces a specific piece of TEI markup:</p>
+              <ul>
+                <li><strong>Paragraph</strong> — splits the text into paragraphs, each stored as <code>&lt;p&gt;…&lt;/p&gt;</code>.</li>
+                <li><strong>Line break</strong> — inserts a line break within a paragraph as <code>&lt;lb/&gt;</code> (toolbar button, or press <kbd>Shift</kbd>+<kbd>Enter</kbd>).</li>
+                <li><strong>Bold</strong> — wraps the selection in <code>&lt;emph rend="bold"&gt;</code> (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>B</kbd>).</li>
+                <li><strong>Italic</strong> — wraps the selection in <code>&lt;emph rend="italic"&gt;</code> (<kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>I</kbd>).</li>
+                <li><strong>Headline</strong> — a dropdown offering three heading levels (Heading 1, Heading 2, Heading 3), each marking the selection as a heading stored inline as <code>&lt;hi rend="h1"&gt;</code>, <code>&lt;hi rend="h2"&gt;</code> or <code>&lt;hi rend="h3"&gt;</code>.</li>
+              </ul>
+              <p>Rich-text editing is available on the free-text summaries, notes and quotes across all four editors — for example a place <em>Description</em>, a person <em>Note</em>, a work <em>Incipit</em>/<em>Explicit</em>/quotes/notes, and the manuscript contents/hand/decoration/history summaries, text-unit incipit/explicit quotes and notes, additions transcription/translation and note, and the binding note. The structured <em>page-layout summary</em> (feature list plus note) is intentionally left as a plain field and is not rich-text enabled.</p>
+              <p>Formatting is saved as TEI inside the record and shown formatted again when you re-open it or view it in the <a href="collection.html">Data Collection</a>. If the editor cannot load (for example with no internet connection) the field falls back to a plain text box and everything still works.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -593,6 +602,240 @@
             </div>
 
             <div class="mt-5">
+              <h5>The form-building toolkit</h5>
+              <p>Every editor builds its form the same way: a <code>renderForm()</code> function assembles one big HTML string and drops it into the form container with <code>innerHTML</code>. That string is stitched together from small helpers on <code>BA.form</code> (aliased <code>F</code> inside each editor) and from labels held in <code>BA.uiText</code> — labels are <strong>never</strong> hard-coded. Three symmetric functions then move data between the rendered form and the TEI file:</p>
+              <ul>
+                <li><code>get{X}Data()</code> — reads the current form into a plain JavaScript object,</li>
+                <li><code>build{X}Body()</code> — serialises that object to TEI-XML,</li>
+                <li><code>import{X}XML()</code> — parses a TEI file back into the form.</li>
+              </ul>
+              <p>(<code>{X}</code> is <code>Person</code>, <code>Place</code>, <code>Work</code>, or <code>Ms</code>; the files are <code>JS/ba/person-editor.js</code>, <code>place-editor.js</code>, <code>work-editor.js</code>, and <code>ms-editor.js</code>.) Whenever you add or change a field you touch these three in lock-step and then run a round-trip (export → import → export) to confirm nothing is lost. The recipes below give the exact code for each kind of change; all of them draw on the shared helpers in <code>JS/ba/form-engine.js</code> (<code>F.*</code>) and <code>JS/ba/xml-utils.js</code> (<code>U.*</code>).</p>
+              <p class="callout"><strong>Reload to see changes.</strong> The editors are plain <code>&lt;script&gt;</code> files with no build step. After editing any <code>JS/ba/*.js</code> or <code>ui-text.js</code>, just reload the editor page in the browser.</p>
+            </div>
+
+            <div class="mt-5">
+              <h5>How fields map to TEI: elements and attributes</h5>
+              <p>All serialisation goes through one builder, <code>U.el(tag, attrs, content)</code>:</p>
+              <ul>
+                <li><code>tag</code> — the element name;</li>
+                <li><code>attrs</code> — an object; <strong>each key becomes an attribute</strong>. Keys whose value is <code>""</code>, <code>null</code>, or <code>undefined</code> are dropped, so empty attributes never appear;</li>
+                <li><code>content</code> — the element's text (or nested elements). Empty content with no attributes yields <code>""</code> (the element is omitted entirely); empty content <em>with</em> attributes yields a self-closing tag.</li>
+              </ul>
+              <p>So a field's <em>value</em> becomes element text, and its qualifiers (language, certainty, source, a linked URI …) become <em>attributes</em>. Here is one place name written with a language, a headword type, and a source pointer:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>parts.push(U.el("placeName", {
+  "xml:lang": n.lang,                     // → attribute
+  type: n.headword ? "ba-headword" : "",  // dropped when empty
+  source: n.source                        // → attribute
+}, U.esc(n.name)));                        // → element text</code></pre>
+              <p>…which produces:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>&lt;placeName xml:lang="ar" type="ba-headword" source="#bib1"&gt;Fusṭāṭ&lt;/placeName&gt;</code></pre>
+              <p>Import is the mirror image — element text with <code>U.text()</code>, attributes with <code>getAttribute()</code> (or the <code>U.attr()</code> helper):</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>U.qa(doc, "place/placeName").forEach(function (pn) {
+  addNameBlock({
+    name:     U.text(pn),                       // ← element text
+    lang:     pn.getAttribute("xml:lang"),      // ← attribute
+    headword: pn.getAttribute("type") === "ba-headword",
+    source:   pn.getAttribute("source") || ""
+  });
+});</code></pre>
+
+              <h6 class="mt-4">The value-plus-URI pattern (linked fields)</h6>
+              <p>Fields that link to another record or an authority carry <strong>two</strong> pieces of data in one input: the visible text and a hidden URI kept in <code>input.dataset.lodUri</code>. On export the text becomes the element content and the URI becomes a <code>ref</code> attribute. <code>F.valUri(block, cls)</code> reads both at once:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// read both parts at once
+var st = F.valUri(block, "loc-settlement");   // → { value: "Cairo", uri: "https://…/place/1" }
+
+// build: text = value, link = ref attribute
+U.el("settlement", { ref: st.uri, source: st.source }, U.esc(st.value));
+
+// import: restore text, stash the URI, draw the link badge
+input.value = U.text(settlementEl);
+var ref = settlementEl.getAttribute("ref");
+if (ref) { input.dataset.lodUri = ref; F.attachBadge(input, ref); }</code></pre>
+              <p>This is the single most important idea when adding linked fields: <strong>one field, one element, and its link is an attribute.</strong></p>
+            </div>
+
+            <div class="mt-5">
+              <h5>Field layout: rows, columns, and the same line</h5>
+              <p>The form uses the <a href="https://getbootstrap.com/docs/5.3/layout/grid/" target="_blank" rel="noopener">Bootstrap grid</a>. Fields sit in columns (<code>col-md-N</code>) inside a row (<code>row</code>); the column widths on one line add up to <strong>12</strong>. So the number of fields on a line is just how you split those 12 units:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>&lt;div class="row mb-3"&gt;
+  &lt;div class="col-md-4"&gt; … field 1 … &lt;/div&gt;   &lt;!-- 4 --&gt;
+  &lt;div class="col-md-4"&gt; … field 2 … &lt;/div&gt;   &lt;!-- + 4 --&gt;
+  &lt;div class="col-md-4"&gt; … field 3 … &lt;/div&gt;   &lt;!-- + 4 = 12 → three per line --&gt;
+&lt;/div&gt;</code></pre>
+              <ul>
+                <li><code>col-12</code> → one field spanning the full width,</li>
+                <li>two <code>col-md-6</code> → two fields side by side,</li>
+                <li>three <code>col-md-4</code> (or <code>4 + 4 + 4</code>) → three per line; mix widths freely as long as they total 12 (e.g. <code>col-md-8</code> + <code>col-md-4</code>).</li>
+              </ul>
+              <p>To move a field onto a neighbouring line, move its <code>&lt;div class="col-*"&gt;</code> into that line's <code>&lt;div class="row"&gt;</code> and adjust the widths so the line still totals 12. Below <code>md</code> (narrow screens) Bootstrap stacks the columns automatically.</p>
+            </div>
+
+            <div class="mt-5">
+              <h5>Field types</h5>
+              <p>Each recipe shows the <em>render</em> markup plus the matching <em>read</em> / <em>build</em> / <em>import</em> lines. <code>optionsHtml()</code>, <code>vocab()</code>, <code>labelHtml()</code>, <code>fieldVal()</code>, and <code>fieldUri()</code> are small per-editor helpers; <code>F.*</code> and <code>U.*</code> are the shared toolkit.</p>
+
+              <h6 class="mt-4">Free text</h6>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// render
+'&lt;label class="form-label"&gt;Note type&lt;/label&gt;' +
+'&lt;input type="text" class="form-control" name="noteType"&gt;'
+
+fieldVal("noteType")                              // read (trimmed .value)
+document.querySelector('[name="noteType"]').value = el.getAttribute("type") || ""; // import</code></pre>
+
+              <h6 class="mt-4">Dropdown (closed vocabulary)</h6>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// render — options come from a controlled vocabulary in ui-text.js
+'&lt;select class="form-select" name="descLang"&gt;' +
+  optionsHtml(vocab("langScript6"), selected) +
+'&lt;/select&gt;'
+
+fieldVal("descLang")                              // read
+selectEl.value = quote.getAttribute("xml:lang") || ""; // import</code></pre>
+              <p>The lists (<code>langScript6</code>, <code>certainty</code>, …) live under <code>BA.uiText.vocab</code>; adding values is covered in <em>Adding controlled terminology</em> below.</p>
+
+              <h6 class="mt-4">Dropdown with an “Other…” escape hatch (open vocabulary)</h6>
+              <p>A browsable <code>&lt;select&gt;</code> plus a free-text box that appears when the user picks “Other…”, so an open vocabulary stays open:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// render
+labelHtml("material") + F.selectWithOtherHtml("sup-material", "writingMaterial", "")
+
+F.readSelectWithOther(scope, "sup-material")            // read (returns the chosen or typed value)
+F.setSelectWithOther(scope, "sup-material", U.text(el)) // import (auto-reveals the box for out-of-list values)</code></pre>
+
+              <h6 class="mt-4">Lookup (Linked Open Data autocomplete)</h6>
+              <p>A text field with <code>class="lod-autocomplete"</code> and a <code>data-lod</code> attribute listing the providers to query. Picking a result stores its URI (the value-plus-URI pattern above):</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// render — data-lod lists the providers, space-separated
+'&lt;input type="text" class="form-control lod-autocomplete" ' +
+       'data-lod="local-place" name="locSettlement"&gt;'
+
+{ value: fieldVal("locSettlement"), uri: fieldUri("locSettlement") }   // read
+U.el("settlement", { ref: uri }, U.esc(value))                        // build
+input.value = value;                                                  // import
+if (ref) { input.dataset.lodUri = ref; F.attachBadge(input, ref); }</code></pre>
+              <p>Available <code>data-lod</code> providers:</p>
+              <ul>
+                <li><code>local-person</code>, <code>local-place</code>, <code>local-work</code>, <code>local-manuscript</code> — other &lt;MANO&gt; records (resolve against the authority index),</li>
+                <li><code>geonames</code>, <code>gnd-place</code>, <code>wikidata-place</code> — place authorities,</li>
+                <li><code>gnd-person</code>, <code>viaf-person</code>, <code>wikidata-person</code> — person authorities,</li>
+                <li><code>zotero</code> — the project bibliography.</li>
+              </ul>
+              <p>Combine several to query them together, e.g. <code>data-lod="geonames gnd-place wikidata-place"</code>.</p>
+
+              <h6 class="mt-4">Source (multi-select pointer list)</h6>
+              <p>A <code>&lt;select multiple&gt;</code> whose options are the record's own bibliography entries; the selection is stored as a whitespace-separated pointer list in a <code>source</code> attribute:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// render
+'&lt;label class="form-label"&gt;Source&lt;/label&gt;' + F.sourceSelectHtml("desc-source")
+
+F.readSourceSelect(scope.querySelector(".desc-source"))               // read → "#bib1 #bib3"
+U.el("quote", { source: d.desc.source, "xml:lang": d.desc.lang }, U.esc(d.desc.text)) // build</code></pre>
+              <p>Call <code>F.refreshSourceSelects(formEl, biblContainer)</code> whenever the bibliography changes so the options stay in sync.</p>
+
+              <h6 class="mt-4">Resizable / long-text fields</h6>
+              <p>An <code>&lt;input&gt;</code> is a single line; a <code>&lt;textarea&gt;</code> is multi-line and the user can drag it taller. The rule that enables the drag handle is already in <code>css/style.css</code>:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>.data-enter textarea.form-control { resize: vertical; }</code></pre>
+              <p>Because the whole form sits inside a <code>&lt;div class="data-enter"&gt;</code>, <strong>every</strong> textarea is vertically resizable automatically. To make an existing single-line field resizable, swap its <code>&lt;input&gt;</code> for a <code>&lt;textarea&gt;</code> — you read it exactly the same way (its <code>.value</code>), so nothing else changes:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// before — one line
+'&lt;input type="text" class="form-control" name="descQuote"&gt;'
+// after — multi-line and resizable
+'&lt;textarea class="form-control" name="descQuote" rows="2"&gt;&lt;/textarea&gt;'</code></pre>
+            </div>
+
+            <div class="mt-5">
+              <h5>Mandatory fields</h5>
+              <p>A required field has two parts: a visual marker and a hard gate.</p>
+              <p><strong>1. The red asterisk</strong> is driven by the label's <code>required</code> flag in <code>ui-text.js</code>. <code>labelHtml()</code> reads the flag and adds the star:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>"settlement": {
+  "required": true,               // → renders the red * beside the label
+  "label": "Place",
+  "help": "Specify the city, town or settlement…"
+}</code></pre>
+              <p><strong>2. The download gate</strong> lives in <code>JS/ba/validate.js</code>, in the per-type <code>validate.rules</code> array. Each rule's <code>test(d)</code> returns <code>true</code> when the record passes:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>manuscript: [
+  { context: "Place", severity: "mandatory",
+    test: function (d) { return !!(d.ident &amp;&amp; d.ident.settlement); },
+    message: "Settlement (place) is required." }
+]</code></pre>
+              <p><code>severity: "mandatory"</code> blocks <em>Download XML</em> until fixed; <code>severity: "recommendation"</code> only shows a warning and still allows <em>Download anyway</em>. The record object <code>d</code> is exactly what <code>get{X}Data()</code> returns, so test against the same field names.</p>
+            </div>
+
+            <div class="mt-5">
+              <h5>Repeatable fields (blocks)</h5>
+              <p>A repeatable field is a “block” the user can add many times (names, occupations, bibliography, manuscript text units …). The pattern has five parts; fields inside a block are addressed by <strong>class</strong>, not <code>name</code>, so deleting one entry never breaks the others:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// 1. renderForm(): an empty container + an add button
+'&lt;div class="occ-container"&gt;&lt;/div&gt;' +
+'&lt;button type="button" class="btn btn-sm btn-primary" id="addOccBtn"&gt;Add activity&lt;/button&gt;'
+
+// 2. one function builds ONE entry with F.addBlock (fields by class)
+function addOccBlock(data) {
+  data = data || {};
+  return F.addBlock(occContainer(),
+    '&lt;div class="row"&gt;&lt;div class="col-md-5"&gt;&lt;label class="form-label"&gt;Activity&lt;/label&gt;' +
+    '&lt;input type="text" class="form-control occ-type" value="' + U.esc(data.type || "") + '"&gt;&lt;/div&gt;&lt;/div&gt;');
+}
+
+// 3. wire the add button ONCE, by delegation, in init()
+if (e.target.closest("#addOccBtn")) addOccBlock();
+
+// 4. read every entry with F.blocks(); emit one element each
+F.blocks(occContainer())
+  .map(function (b) { return { type: F.val(b, "occ-type") }; })
+  .filter(function (o) { return o.type; })
+  .forEach(function (o) { parts.push(U.el("occupation", { type: o.type })); });
+
+// 5. import re-adds one block per element
+U.qa(doc, "person/occupation").forEach(function (o) {
+  addOccBlock({ type: o.getAttribute("type") });
+});</code></pre>
+              <p><code>F.addBlock()</code> gives every entry a delete (×) button automatically. Pass <code>{ movable: true }</code> as its third argument to also get up/down reorder buttons (as used by the manuscript “text units”):</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>F.addBlock(container, innerHtml, { movable: true });</code></pre>
+            </div>
+
+            <div class="mt-5">
+              <h5>Date fields</h5>
+              <p>Dates use a shared “date group” so every date behaves the same. One <code>prefix</code> namespaces its fields; a “Date type” selector shows either a single <em>When</em> field or a <em>From / To</em> range and clears the hidden side, so a record can never hold both at once:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// render — one date group
+F.dateGroupHtml("ev-date", { withText: false })
+
+// read → { when, from, to, cert, source }
+var dg = F.readDateGroup(block, "ev-date");
+
+// build — one &lt;date&gt;; when / from / to are attributes
+U.el("date", { when: dg.when, from: dg.from, to: dg.to });
+
+// import — fills the fields and selects the right mode for you
+F.setDateGroup(block, "ev-date", {
+  when: dateEl.getAttribute("when"),
+  from: dateEl.getAttribute("from"),
+  to:   dateEl.getAttribute("to")
+});</code></pre>
+              <p>Values are validated in <code>validate.js</code> against <code>YYYY</code>, <code>YYYY-MM</code>, or <code>YYYY-MM-DD</code> (a leading <code>-</code> marks BCE). The <code>opts</code> for <code>F.dateGroupHtml</code> accept <code>withText</code> (a free-text display date), <code>cert</code> (a certainty select), and <code>source</code> (a source select).</p>
+            </div>
+
+            <div class="mt-5">
+              <h5>Adding, moving, and reordering sections</h5>
+              <p>In the <strong>Person, Place, and Work</strong> editors, sections are literal calls to <code>F.accordionSectionHtml()</code> in <code>renderForm()</code> — add one, remove one, or reorder them:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>'&lt;div class="accordion" id="placeAccordion"&gt;' +
+  F.accordionSectionHtml("placeAccordion", 0, "Place",        help, placeBody, true)  +
+  F.accordionSectionHtml("placeAccordion", 1, "Linked Data",  help, idnoBody,  false) +
+  F.accordionSectionHtml("placeAccordion", 2, "Bibliography", help, biblBody,  false) +
+'&lt;/div&gt;'</code></pre>
+              <p>Arguments: <code>(accordionId, index, title, help, bodyHtml, openByDefault)</code>. To <strong>add</strong> a section, insert another call; to <strong>move</strong> one, change the order of the calls. The <code>index</code> only has to stay unique within the accordion, and just the first section should pass <code>true</code> (open by default). In the real code the <code>title</code> and <code>help</code> are read from <code>BA.uiText.sections.{type}</code> rather than written as literals.</p>
+              <p>The <strong>Manuscript</strong> editor is data-driven: section order and titles come from <code>BA.uiText.sections.mss</code>, and each section <code>name</code> maps to a body-builder in <code>SECTION_BODY</code> (<code>ms-editor.js</code>):</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>// ms-editor.js — name → body builder
+var SECTION_BODY = {
+  identification: fIdentification,
+  "content-description": fContent,
+  /* … */
+  bibliography: fBibliography
+};
+
+// ui-text.js — order + labels
+"sections": { "mss": [
+  { "name": "identification",      "label": "Identification", "help": "…" },
+  { "name": "content-description", "label": "Content",        "help": "…" }
+] }</code></pre>
+              <p>To add a manuscript section, add both an entry to that array <em>and</em> a matching builder function; to move a section, reorder the array.</p>
+            </div>
+
+            <div class="mt-5">
               <h5>Adding controlled terminology</h5>
               <p>The controlled vocabularies live in <code>JS/ba/ui-text.js</code> under <code>BA.uiText.vocab</code>. Hand edits are allowed. To add a value to an existing list:</p>
               <ol>
@@ -662,6 +905,28 @@
               </ul>
               <p>The token is held in your browser's <code>localStorage</code> only (key <code>ba-github-token</code>); it is <strong>never committed to the repository</strong> and is not shared between browsers or machines. Use <strong>Forget token</strong> in the dialog to remove it. After a successful submit the lookup index rebuilds from the committed files and refreshes within about a minute.</p>
               <p>Contributors who prefer not to store a token can use the <strong>Open GitHub's new-file page</strong> link in the dialog: it opens GitHub's web editor with the filename and record content prefilled, so the record can be committed through a normal pull request. Very large records exceed the prefill link's length limit; in that case download the file and add it on GitHub manually.</p>
+            </div>
+
+            <div class="mt-5">
+              <h5>Rich-text editing (JinnTap)</h5>
+              <p>The summary/note/quote fields are upgraded to a small TEI editor by the shared adapter <code>JS/ba/rich-text.js</code> (<code>BA.rich</code>), which loads the <a href="https://github.com/jinntec/jinn-tap" target="_blank" rel="noopener">JinnTap</a> web component as a version-pinned ES module from jsDelivr. Everything is controlled by one config block in <code>JS/ba/config.js</code>:</p>
+              <pre class="bg-body-tertiary p-2 rounded"><code>BA.config.richText = {
+  enabled: true,
+  module: "https://cdn.jsdelivr.net/npm/@jinntec/jinntap@1.31.0/dist/jinn-tap.es.js",
+  css:    "https://cdn.jsdelivr.net/npm/@jinntec/jinntap@1.31.0/dist/jinn-tap.css"
+};</code></pre>
+              <ul>
+                <li><strong>Single switch.</strong> Set <code>enabled: false</code> to restore plain textareas everywhere (no network requests to jsDelivr). The adapter also falls back to the plain textarea automatically when the module cannot load — offline, <code>file://</code>, or a blocked CDN — so nothing ever breaks.</li>
+                <li><strong>Pin the exact version.</strong> Both URLs must point at the same pinned version (currently <code>1.31.0</code>); verify on jsDelivr that the version ships a <code>dist/</code> before bumping, and update both lines together.</li>
+              </ul>
+              <p>JinnTap is schema-driven. <code>JS/ba/jinntap-schema-ba.json</code> is a deliberately reduced schema that restricts the editor to five actions — paragraph (<code>p</code>), line break (<code>lb</code>), italic/bold (<code>emph rend="italic|bold"</code>), and headline (<code>hi rend="h1"</code>) — plus a little non-interactive scaffolding the component needs to boot. To <strong>admit another element</strong>, edit <strong>three places</strong> in lock-step:</p>
+              <ol>
+                <li><code>JS/ba/jinntap-schema-ba.json</code> — add the element (and its toolbar/keyboard entry) to the <code>schema</code> map.</li>
+                <li><code>JS/ba/validate.js</code> — add it to the allowed-element/attribute whitelist (<code>RICH_ALLOWED</code> and <code>richMarkupIssue</code>), or valid records will be flagged as unsupported markup.</li>
+                <li><code>JS/ba/rich-text.js</code> — add a case to the <code>renderHtml</code> map, so view mode and the Data Collection render it (unmapped elements degrade to plain text).</li>
+              </ol>
+              <p class="callout"><strong>Mappings are fixed.</strong> Bold/italic as <code>&lt;emph rend="bold|italic"&gt;</code> and headline as <code>&lt;hi rend="h1"&gt;</code> are project decisions fixed by the project lead in 2026-07. Changing a mapping is not just a code edit — it requires migrating the markup already stored in existing records, so treat it as a data-migration task, not a configuration tweak.</p>
+              <p><strong>License note.</strong> JinnTap is licensed <strong>GPL-3.0-or-later</strong>, whereas MANO is published under CC BY-NC-SA. Loading it as an unmodified, version-pinned module from a public CDN keeps it a clearly separate work, but the GPL / CC BY-NC-SA mix was flagged during the R6 feasibility review (CHANGES-R6, finding 4). This is not legal advice: any redistribution decision belongs to the project lead. The attribution is recorded on the <a href="imprint.html">Imprint</a> page.</p>
             </div>
           </div>
         </div>

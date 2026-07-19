@@ -770,6 +770,11 @@
     opts = opts || {};
     document.body.classList.add("view-mode", "hide-empty");
 
+    // Rich-text fields (R6): swap each rich-capable textarea for a read-only
+    // div.rich-view rendering its formatted HTML. Done before tagEmpty so the
+    // (hidden) source textareas still drive the emptiness logic below.
+    if (window.BA.rich && window.BA.rich.renderView) window.BA.rich.renderView(formEl);
+
     // Disable every control except .keep-active (badge <a> links are unaffected).
     Array.prototype.forEach.call(
       formEl.querySelectorAll("input, select, textarea, button"),

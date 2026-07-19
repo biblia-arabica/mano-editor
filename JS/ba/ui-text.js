@@ -1700,24 +1700,28 @@ window.BA.uiText = {
     ],
     "noteResp": [
       {
-        "v": "gschwarb",
-        "l": "Gregor Schwarb"
-      },
-      {
         "v": "rvollandt",
         "l": "Ronny Vollandt"
+      },
+      {
+        "v": "ngibson",
+        "l": "Nathan Gibson"
       },
       {
         "v": "ptarras",
         "l": "Peter Tarras"
       },
       {
-        "v": "nurbiczek",
-        "l": "Nadine Urbiczek"
+        "v": "hibrahim",
+        "l": "Habib Ibrahim"
       },
       {
-        "v": "mmoliere",
-        "l": "Maximilian de Molière"
+        "v": "lgzella",
+        "l": "Lea Gzella"
+      },
+      {
+        "v": "ffrigo",
+        "l": "Filippo Frigo"
       }
     ],
     "biblTypePerson": [

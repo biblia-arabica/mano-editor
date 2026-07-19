@@ -79,13 +79,12 @@ window.BA = {
         ]
       },
       {
-        id: "mmoliere",
-        name: "Maximilian de Molière",
+        id: "lgzella",
+        name: "Lea Gzella",
         role: "contributor",
         refs: [
-          "https://www.naher-osten.uni-muenchen.de/personen/wiss_ma/maximilian_de_moliere/index.html",
-          "https://orcid.org/0000-0002-2168-8655",
-          "http://viaf.org/viaf/65156495392717561393"
+          "https://www.naher-osten.uni-muenchen.de/personen/doktoranden/lea_gzella_rasche/index.html",
+          "http://viaf.org/viaf/2912176725960924980001"
         ]
       },
       {
@@ -95,6 +94,16 @@ window.BA = {
         refs: [
           "http://viaf.org/viaf/156150565763506252798",
           "https://orcid.org/0000-0002-1667-9973"
+        ]
+      },
+      {
+        id: "mmoliere",
+        name: "Maximilian de Molière",
+        role: "contributor",
+        refs: [
+          "https://www.naher-osten.uni-muenchen.de/personen/wiss_ma/maximilian_de_moliere/index.html",
+          "https://orcid.org/0000-0002-2168-8655",
+          "http://viaf.org/viaf/65156495392717561393"
         ]
       },
       {
@@ -108,12 +117,13 @@ window.BA = {
         ]
       },
       {
-        id: "lgzella",
-        name: "Lea Gzella",
+        id: "vzaki",
+        name: "Vevian Zaki",
         role: "contributor",
         refs: [
-          "https://www.naher-osten.uni-muenchen.de/personen/doktoranden/lea_gzella_rasche/index.html",
-          "http://viaf.org/viaf/2912176725960924980001"
+          "https://www.naher-osten.uni-muenchen.de/personen/wiss_ma/vevian_zaki1/index.html",
+          "https://orcid.org/0000-0002-5211-390X",
+          "http://viaf.org/viaf/16162982578386061324"
         ]
       },
       {
@@ -125,6 +135,18 @@ window.BA = {
         ]
       },
       {
+        id: "gdib",
+        name: "Georges Dib",
+        role: "contributor",
+        refs: []
+      },
+      {
+        id: "nfaqsh",
+        name: "Nour Faqsh",
+        role: "contributor",
+        refs: []
+      },
+      {
         id: "nibrahimi",
         name: "Nargez Ibrahimi",
         role: "contributor",
@@ -133,14 +155,45 @@ window.BA = {
         ]
       },
       {
+        id: "tjuen",
+        name: "Teresa Juen",
+        role: "contributor",
+        refs: []
+      },
+      {
+        id: "aradke",
+        name: "Antonia Radke",
+        role: "contributor",
+        refs: []
+      },
+      {
         id: "jthalmann",
         name: "Jessica Thalmann",
         role: "contributor",
         refs: [
           "https://www.naher-osten.uni-muenchen.de/personen/hilfskraefte/thalmann1/index.html"
         ]
+      },
+      {
+        id: "dzaynali",
+        name: "Darius Zaynali",
+        role: "contributor",
+        refs: []
       }
     ],
+
+    // Rich-text editing (Round 6): upgrades summary/note/quote textareas to
+    // <jinn-tap> TEI editors, loaded as a version-pinned ES module from jsDelivr.
+    // enabled:false restores the plain textareas everywhere (single switch); the
+    // adapter also falls back to the textarea automatically when the module can't
+    // load (offline / file:// / blocked). NB: JinnTap is GPL-3.0-or-later while
+    // MANO ships under CC BY-NC-SA — kept a separate, unmodified CDN module; the
+    // project lead should sign off on the license mix before shipping (W03).
+    richText: {
+      enabled: true,
+      module: "https://cdn.jsdelivr.net/npm/@jinntec/jinntap@1.31.0/dist/jinn-tap.es.js",
+      css: "https://cdn.jsdelivr.net/npm/@jinntec/jinntap@1.31.0/dist/jinn-tap.css"
+    },
 
     // Placeholder — ui-text.js (loaded next) overwrites this with BA.uiText.vocab.
     vocab: {},
@@ -182,7 +235,8 @@ window.BA = {
   lod: {},
   authority: {},
   header: {},
-  github: {}
+  github: {},
+  rich: {}
 };
 
 Object.freeze(window.BA.config.entityPaths);
