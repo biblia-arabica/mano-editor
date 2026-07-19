@@ -7,7 +7,7 @@
 (function () {
   "use strict";
 
-  var U, F, H, V;
+  var U, F, H, V, R;
   var LBLROOT; // BA.uiText.labels.mss
 
   var FORM = "#msFormContainer";
@@ -223,9 +223,9 @@
 
   function fWritingMaterial() {
     return row(
-      col(6, labelHtml("writing-material", "material") + F.selectWithOtherHtml("sup-material", "writingMaterial", "")) +
-      col(4, labelHtml("writing-material", "note") + textInput("sup-note")) +
-      col(2, langLabelHtml("writing-material") + langSelect("sup-note-lang"))) +
+      col(6, labelHtml("writing-material", "material") + F.selectWithOtherHtml("sup-material", "writingMaterial", ""))) +
+      row(col(12, labelHtml("writing-material", "note") + textarea("sup-note"))) +
+      row(col(4, langLabelHtml("writing-material") + langSelect("sup-note-lang"))) +
       row(
         col(4, labelHtml("writing-material", "measure") + textInput("ext-folios")) +
         col(4, labelHtml("writing-material", "height") + textInput("ext-h")) +
@@ -235,24 +235,24 @@
           selectHtml("fol-style", "foliationStyle", "Style") + selectHtml("fol-rendition", "foliationRendition", "Rendition") + "</div>")) +
       "<h6>" + esc(L("writing-material", "collation").label) + "</h6>" +
       row(
-        col(3, labelHtml("writing-material", "formula") + selectHtml("col-formula", "quireFormula")) +
-        col(3, '<label class="form-label">Unit</label>' + textInput("col-unit")) +
-        col(3, '<label class="form-label">Note</label>' + textInput("col-note")) +
-        col(3, langLabelHtml("writing-material") + langSelect("col-note-lang"))) +
+        col(6, labelHtml("writing-material", "formula") + selectHtml("col-formula", "quireFormula")) +
+        col(6, '<label class="form-label">Unit</label>' + textInput("col-unit"))) +
+      row(col(12, '<label class="form-label">Note</label>' + textarea("col-note"))) +
+      row(col(4, langLabelHtml("writing-material") + langSelect("col-note-lang"))) +
       subSection("writing-material", "catchwords", "col-catchwords", "Add ordering of the quires") +
       "<h6>" + esc(L("writing-material", "condition").label) + "</h6>" +
+      row(col(12, '<label class="form-label">Note</label>' + textarea("cond-note"))) +
       row(
-        col(3, '<label class="form-label">Note</label>' + textInput("cond-note")) +
-        col(3, langLabelHtml("writing-material") + langSelect("cond-note-lang")) +
-        col(3, labelHtml("writing-material", "ab") + textInput("cond-writing")) +
-        col(3, '<label class="form-label">Characterization</label>' + selectHtml("cond-rend", "conditionWritingRend")));
+        col(4, langLabelHtml("writing-material") + langSelect("cond-note-lang")) +
+        col(4, labelHtml("writing-material", "ab") + textInput("cond-writing")) +
+        col(4, '<label class="form-label">Characterization</label>' + selectHtml("cond-rend", "conditionWritingRend")));
   }
 
   function fPageLayout() {
     return "<h6>" + esc(L("page-layout", "summary").label) + "</h6>" +
       subSection("page-layout", "desc", "lay-sum-desc", "Add page-layout feature") +
-      row(col(4, '<label class="form-label">Note</label>' + textInput("lay-sum-note")) +
-        col(4, langLabelHtml("page-layout") + langSelect("lay-sum-note-lang"))) +
+      row(col(12, '<label class="form-label">Note</label>' + textarea("lay-sum-note"))) +
+      row(col(4, langLabelHtml("page-layout") + langSelect("lay-sum-note-lang"))) +
       "<h6>" + esc(L("page-layout", "layout").label) + "</h6>" +
       '<div class="layouts-container"></div>' + addBtn("addLayoutBtn", "Add layout");
   }
@@ -353,6 +353,30 @@
     document.getElementById("msFormContainer").innerHTML = meta + acc;
   }
 
+  // ---------- rich-text (Round 6, W02) ----------
+  // Upgrade a textarea to a JinnTap editor when the module is available. No-op
+  // when rich text is disabled / the module can't load (plain textarea stays)
+  // and in read-only view mode (W03 renders rich HTML there instead).
+  function richUpgrade(textarea) {
+    if (!window.BA.rich || !textarea) return;
+    if (F.isViewMode && F.isViewMode()) return;
+    window.BA.rich.upgradeWhenReady(textarea);
+  }
+  // Static summary/note fields, upgraded after form render and import: contents,
+  // text-layout/decoration and hand summaries; binding, history, support,
+  // collation, condition and layout-summary notes. Repeatable block fields
+  // (msItem, additions, script, hand, deco, heritage, history events) self-upgrade
+  // at block creation. The layoutDesc (page-layout) summary *construct* — the
+  // feature multi-select — stays a plain field (excluded per CHANGES-R6); only its
+  // child note (lay-sum-note) is rich.
+  function upgradeStaticRich() {
+    if (!document.querySelector(FORM)) return;
+    ["cont-summary", "deco-summary", "hand-summary", "bind-note", "hist-summary",
+     "sup-note", "col-note", "cond-note", "lay-sum-note"].forEach(function (cls) {
+      richUpgrade(document.querySelector(FORM + " ." + cls));
+    });
+  }
+
   // ---------- repeatable blocks ----------
 
   function container(cls) { return document.querySelector(FORM + " ." + cls); }
@@ -396,6 +420,10 @@
       { movable: true });
     block.dataset.xmlid = "msitem-" + n;
     F.initTooltips(block);
+    // Rich incipit/explicit quotes + note for this text unit.
+    richUpgrade(block.querySelector(".mi-inc-quote"));
+    richUpgrade(block.querySelector(".mi-exp-quote"));
+    richUpgrade(block.querySelector(".mi-note"));
     return block;
   }
 
@@ -426,13 +454,15 @@
   }
 
   function addScriptBlock() {
-    return F.addBlock(container("scripts-container"),
+    var block = F.addBlock(container("scripts-container"),
       row(col(3, '<label class="form-label">Graphic system</label>' + selectHtml("sc-lang", "scriptGraphicSystem")) +
         col(3, '<label class="form-label">Script type</label>' + selectHtml("sc-script", "scriptType")) +
         col(3, '<label class="form-label">Script mode</label>' + selectHtml("sc-style", "scriptMode")) +
         col(3, '<label class="form-label">Script quality</label>' + selectHtml("sc-rend", "scriptQuality"))) +
-      row(col(9, '<label class="form-label">Note</label>' + textInput("sc-note")) +
-        col(3, '<label class="form-label">Language</label>' + langSelect("sc-note-lang"))));
+      row(col(12, '<label class="form-label">Note</label>' + textarea("sc-note"))) +
+      row(col(4, '<label class="form-label">Language</label>' + langSelect("sc-note-lang"))));
+    richUpgrade(block.querySelector(".sc-note"));
+    return block;
   }
 
   function addHandBlock() {
@@ -445,18 +475,21 @@
       subSection("script-hand-description", "placeName", "hn-place", "Add place of origin") +
       subSection("script-hand-description", "metamark", "hn-metamark", "Add special graphic sign") +
       dateRow("hn") +
-      row(col(9, '<label class="form-label">Note</label>' + textInput("hn-note")) +
-        col(3, '<label class="form-label">Language</label>' + langSelect("hn-note-lang"))));
+      row(col(12, '<label class="form-label">Note</label>' + textarea("hn-note"))) +
+      row(col(4, '<label class="form-label">Language</label>' + langSelect("hn-note-lang"))));
     block.dataset.xmlid = "hand-" + n;
     F.initTooltips(block);
+    richUpgrade(block.querySelector(".hn-note"));
     return block;
   }
 
   function addDecoBlock() {
-    return F.addBlock(container("deco-container"),
+    var block = F.addBlock(container("deco-container"),
       subSection("text-layout", "desc", "dec-desc", "Add text-layout feature") +
-      row(col(8, '<label class="form-label">Note</label>' + textInput("dec-note")) +
-        col(4, '<label class="form-label">Note language</label>' + langSelect("dec-note-lang"))));
+      row(col(12, '<label class="form-label">Note</label>' + textarea("dec-note"))) +
+      row(col(4, '<label class="form-label">Note language</label>' + langSelect("dec-note-lang"))));
+    richUpgrade(block.querySelector(".dec-note"));
+    return block;
   }
 
   function addAdditionBlock() {
@@ -474,21 +507,28 @@
       row(col(4, '<label class="form-label">Language</label>' + langSelect("add-note-lang"))));
     block.dataset.xmlid = "addition-" + n;
     F.initTooltips(block);
+    // Rich transcription / translation quotes + note for this incodicated document.
+    richUpgrade(block.querySelector(".add-transcr"));
+    richUpgrade(block.querySelector(".add-transl"));
+    richUpgrade(block.querySelector(".add-note"));
     return block;
   }
 
   function addAccMatBlock() {
-    return F.addBlock(container("accmat-container"),
-      row(col(8, labelHtml("heritage-data", "note") + textInput("acc-note")) +
-        col(4, '<label class="form-label">Language</label>' + langSelect("acc-note-lang"))) +
+    var block = F.addBlock(container("accmat-container"),
+      row(col(12, labelHtml("heritage-data", "note") + textarea("acc-note"))) +
+      row(col(4, '<label class="form-label">Language</label>' + langSelect("acc-note-lang"))) +
       row(col(6, labelHtml("heritage-data", "persName") + '<input type="text" class="form-control lod-autocomplete acc-person" data-lod="local-person">')) +
-        row(col(8, labelHtml("heritage-data", "quote") + textInput("acc-quote")) +
-        col(4, '<label class="form-label">Language</label>' + langSelect("acc-quote-lang", "langQuoteHeritage"))) +
+      row(col(12, labelHtml("heritage-data", "quote") + textarea("acc-quote"))) +
+      row(col(4, '<label class="form-label">Language</label>' + langSelect("acc-quote-lang", "langQuoteHeritage"))) +
       zoteroLookupHtml("acc-title", "acc-ptr") +
       row(col(4, labelHtml("heritage-data", "title") + textInput("acc-title")) +
         col(3, labelHtml("heritage-data", "citedRange") + textInput("acc-cited")) +
         col(2, '<label class="form-label">Unit</label>' + '<select class="form-select acc-unit">' + optionsHtml(citedUnitList(), "p", "—") + "</select>") +
         col(3, '<label class="form-label">Link</label>' + '<input type="url" class="form-control acc-ptr">')));
+    richUpgrade(block.querySelector(".acc-note"));
+    richUpgrade(block.querySelector(".acc-quote"));
+    return block;
   }
 
   function histBlockHtml() {
@@ -497,15 +537,22 @@
       row(col(6, labelHtml("manuscript-history", "locus") + '<div class="input-group"><span class="input-group-text">from</span>' +
           textInput("hv-locus-from") + '<span class="input-group-text">to</span>' + textInput("hv-locus-to") + "</div>")) +
       subSection("manuscript-history", "persName", "hv-person", "Add person") +
-      row(col(6, labelHtml("manuscript-history", "stamp") + textInput("hv-stamp")) +
-        col(6, labelHtml("manuscript-history", "quote") + textInput("hv-quote"))) +
-      row(col(6, '<label class="form-label">Transcription language</label>' + langSelect("hv-quote-lang", "langBasic")) +
-        col(3, '<label class="form-label">Note</label>' + textInput("hv-note")) +
-        col(3, '<label class="form-label">Note language</label>' + langSelect("hv-note-lang")));
+      row(col(6, labelHtml("manuscript-history", "stamp") + textInput("hv-stamp"))) +
+      row(col(12, labelHtml("manuscript-history", "quote") + textarea("hv-quote"))) +
+      row(col(6, '<label class="form-label">Transcription language</label>' + langSelect("hv-quote-lang", "langBasic"))) +
+      row(col(12, '<label class="form-label">Note</label>' + textarea("hv-note"))) +
+      row(col(4, '<label class="form-label">Note language</label>' + langSelect("hv-note-lang")));
   }
 
-  function addProvBlock() { return F.addBlock(container("prov-container"), histBlockHtml()); }
-  function addAcqBlock() { return F.addBlock(container("acq-container"), histBlockHtml()); }
+  // Prov/acq events share histBlockHtml; upgrade the block's rich quote + note
+  // after insertion (import rebuilds these via the same builders).
+  function upgradeHistBlock(block) {
+    richUpgrade(block.querySelector(".hv-quote"));
+    richUpgrade(block.querySelector(".hv-note"));
+    return block;
+  }
+  function addProvBlock() { return upgradeHistBlock(F.addBlock(container("prov-container"), histBlockHtml())); }
+  function addAcqBlock() { return upgradeHistBlock(F.addBlock(container("acq-container"), histBlockHtml())); }
 
   function addReproBlock() {
     return F.addBlock(container("repros-container"),
@@ -793,7 +840,7 @@
   }
 
   function buildMsContents(d) {
-    var kids = [el("summary", { "xml:lang": d.summaryLang }, esc(d.summary))];
+    var kids = [el("summary", { "xml:lang": d.summaryLang }, R.embed(d.summary))];
     d.msItems.forEach(function (m) {
       var mk = [];
       // Template order within msItem: locus*, title*, author*, textLang, incipit, explicit, note.
@@ -801,11 +848,11 @@
       m.titles.forEach(function (t) { mk.push(el("title", { "xml:lang": t.lang, ref: t.work.uri, cert: t.cert }, esc(t.work.value))); });
       m.authors.forEach(function (a) { mk.push(el("author", { ref: a.author.uri, cert: a.cert }, esc(a.author.value))); });
       if (m.mainLang || m.otherLangs) mk.push(el("textLang", { mainLang: m.mainLang, otherLangs: m.otherLangs }));
-      var inc = wrap("incipit", null, [locus(m.incFrom, m.incTo), el("quote", { "xml:lang": m.incLang }, esc(m.incQuote))]);
+      var inc = wrap("incipit", null, [locus(m.incFrom, m.incTo), el("quote", { "xml:lang": m.incLang }, R.embed(m.incQuote))]);
       if (inc) mk.push(inc);
-      var exp = wrap("explicit", null, [locus(m.expFrom, m.expTo), el("quote", { "xml:lang": m.expLang }, esc(m.expQuote))]);
+      var exp = wrap("explicit", null, [locus(m.expFrom, m.expTo), el("quote", { "xml:lang": m.expLang }, R.embed(m.expQuote))]);
       if (exp) mk.push(exp);
-      if (m.note) mk.push(el("note", { "xml:lang": m.noteLang }, esc(m.note)));
+      if (m.note) mk.push(el("note", { "xml:lang": m.noteLang }, R.embed(m.note)));
       var item = wrap("msItem", { "xml:id": m.xmlid, "class": m.cls }, mk);
       if (item) kids.push(item);
     });
@@ -831,23 +878,23 @@
 
   function buildObjectDesc(d) {
     var s = d.support;
-    var support = wrap("support", null, [el("material", null, esc(s.material)), el("note", { "xml:lang": s.noteLang }, esc(s.note))]);
+    var support = wrap("support", null, [el("material", null, esc(s.material)), el("note", { "xml:lang": s.noteLang }, R.embed(s.note))]);
     var measure = s.folios ? el("measure", { unit: "folio" }, esc(s.folios)) : "";
     var extent = wrap("extent", null, [measure, dims(s.height, s.width)]);
     var foliation = (s.folStyle || s.folRendition) ? el("foliation", { style: s.folStyle, rendition: s.folRendition }) : "";
     var collation = wrap("collation", null, [
       el("formula", null, esc(s.colFormula)), el("unit", null, esc(s.colUnit))
     ].concat(s.colCatchwords.map(function (c) { return el("catchwords", null, esc(c)); }))
-      .concat([el("note", { "xml:lang": s.colNoteLang }, esc(s.colNote))]));
+      .concat([el("note", { "xml:lang": s.colNoteLang }, R.embed(s.colNote))]));
     var condition = wrap("condition", null, [
-      el("note", { "xml:lang": s.condNoteLang }, esc(s.condNote)),
+      el("note", { "xml:lang": s.condNoteLang }, R.embed(s.condNote)),
       (s.condWriting || s.condRend) ? el("ab", { type: "writing", rend: s.condRend }, esc(s.condWriting)) : ""
     ]);
     var supportDesc = wrap("supportDesc", null, [support, extent, foliation, collation, condition]);
 
     var ly = d.layout;
     var summary = wrap("summary", null, ly.sumDesc.map(function (f) { return el("desc", null, esc(f)); })
-      .concat([el("note", { "xml:lang": ly.sumNoteLang }, esc(ly.sumNote))]));
+      .concat([el("note", { "xml:lang": ly.sumNoteLang }, R.embed(ly.sumNote))]));
     var layouts = ly.layouts.map(function (l) {
       // Template order within layout: locus, dimensions, metamark*, ab[ruling]*, ab[pricking]*.
       return wrap("layout", { writtenLines: l.lines, columns: l.cols, "xml:id": l.xmlid }, [
@@ -864,7 +911,7 @@
 
   function buildHandDesc(d) {
     var h = d.hands;
-    var kids = [el("summary", { "xml:lang": h.summaryLang }, esc(h.summary))];
+    var kids = [el("summary", { "xml:lang": h.summaryLang }, R.embed(h.summary))];
     h.handNotes.forEach(function (hn) {
       // Template order within handNote: locus*, persName*, placeName*, metamark*, origDate, note.
       var hk = [].concat(
@@ -873,7 +920,7 @@
         hn.places.map(function (p) { return el("placeName", { ref: p.uri }, esc(p.value)); }),
         hn.metamarks.map(function (m) { return el("metamark", { "function": m.fn }, esc(m.text)); }),
         [(hn.when || hn.from || hn.to) ? el("origDate", { when: hn.when, from: hn.from, to: hn.to }) : ""],
-        [hn.note ? el("note", { "xml:lang": hn.noteLang }, esc(hn.note)) : ""]
+        [hn.note ? el("note", { "xml:lang": hn.noteLang }, R.embed(hn.note)) : ""]
       );
       var note = wrap("handNote", { medium: hn.medium, "xml:id": hn.xmlid, source: hn.source }, hk);
       if (note) kids.push(note);
@@ -883,7 +930,7 @@
 
   function buildScriptDesc(d) {
     var notes = d.hands.scripts.map(function (s) {
-      var note = s.note ? el("note", { "xml:lang": s.noteLang }, esc(s.note)) : "";
+      var note = s.note ? el("note", { "xml:lang": s.noteLang }, R.embed(s.note)) : "";
       // scriptNote carries meaningful attributes even without a nested note.
       return U.el("scriptNote", { "xml:lang": s.lang, script: s.script, style: s.style, rend: s.rend }, note ? [note] : "");
     }).filter(Boolean);
@@ -891,10 +938,10 @@
   }
 
   function buildDecoDesc(d) {
-    var kids = [el("summary", { "xml:lang": d.deco.summaryLang }, esc(d.deco.summary))];
+    var kids = [el("summary", { "xml:lang": d.deco.summaryLang }, R.embed(d.deco.summary))];
     d.deco.notes.forEach(function (n) {
       var dn = wrap("decoNote", null, n.desc.map(function (f) { return el("desc", null, esc(f)); })
-        .concat([el("note", { "xml:lang": n.noteLang }, esc(n.note))]));
+        .concat([el("note", { "xml:lang": n.noteLang }, R.embed(n.note))]));
       if (dn) kids.push(dn);
     });
     return wrap("decoDesc", null, kids);
@@ -905,9 +952,9 @@
       return wrap("item", { "xml:id": a.xmlid }, [
         a.type ? el("objectType", null, esc(a.type)) : "",
         locus(a.locusFrom, a.locusTo),
-        a.transcr ? el("quote", { type: "transcription", "xml:lang": a.transcrLang }, esc(a.transcr)) : "",
-        a.transl ? el("quote", { type: "translation", "xml:lang": a.translLang }, esc(a.transl)) : "",
-        a.note ? el("note", { "xml:lang": a.noteLang }, esc(a.note)) : ""
+        a.transcr ? el("quote", { type: "transcription", "xml:lang": a.transcrLang }, R.embed(a.transcr)) : "",
+        a.transl ? el("quote", { type: "translation", "xml:lang": a.translLang }, R.embed(a.transl)) : "",
+        a.note ? el("note", { "xml:lang": a.noteLang }, R.embed(a.note)) : ""
       ]);
     }).filter(Boolean);
     var list = wrap("list", null, items);
@@ -923,7 +970,7 @@
       .concat([
         (b.when || b.from || b.to) ? el("origDate", { when: b.when, from: b.from, to: b.to }) : "",
         b.material ? el("material", null, esc(b.material)) : "",
-        b.note ? el("note", { "xml:lang": b.noteLang }, esc(b.note)) : "",
+        b.note ? el("note", { "xml:lang": b.noteLang }, R.embed(b.note)) : "",
         dims(b.height, b.width, b.depth)
       ]));
     var condition = (b.condition || b.conditionText) ? el("condition", { key: b.condition }, esc(b.conditionText)) : "";
@@ -935,9 +982,9 @@
     var items = d.accMats.map(function (a) {
       var bibl = wrap("bibl", null, [titleEl(a.title), citedEl(a.unit, a.cited), ptrEl(a.ptr)]);
       return wrap("item", null, [
-        a.note ? el("note", { "xml:lang": a.noteLang }, esc(a.note)) : "",
+        a.note ? el("note", { "xml:lang": a.noteLang }, R.embed(a.note)) : "",
         a.person.value ? el("persName", { ref: a.person.uri }, esc(a.person.value)) : "",
-        a.quote ? el("quote", { "xml:lang": a.quoteLang }, esc(a.quote)) : "",
+        a.quote ? el("quote", { "xml:lang": a.quoteLang }, R.embed(a.quote)) : "",
         bibl
       ]);
     }).filter(Boolean);
@@ -960,14 +1007,14 @@
       .concat([locus(ev.locusFrom, ev.locusTo)])
       .concat(ev.persons.map(function (p) { return el("persName", { ref: p.person.uri, role: p.role }, esc(p.person.value)); }))
       .concat([
-        ev.quote ? el("quote", { "xml:lang": ev.quoteLang }, esc(ev.quote)) : "",
+        ev.quote ? el("quote", { "xml:lang": ev.quoteLang }, R.embed(ev.quote)) : "",
         ev.stamp ? el("stamp", null, esc(ev.stamp)) : "",
-        ev.note ? el("note", { "xml:lang": ev.noteLang }, esc(ev.note)) : ""
+        ev.note ? el("note", { "xml:lang": ev.noteLang }, R.embed(ev.note)) : ""
       ]));
   }
 
   function buildHistory(d) {
-    var kids = [el("summary", { "xml:lang": d.history.summaryLang }, esc(d.history.summary))];
+    var kids = [el("summary", { "xml:lang": d.history.summaryLang }, R.embed(d.history.summary))];
     d.history.provenance.forEach(function (p) { var x = buildHistEvent("provenance", p); if (x) kids.push(x); });
     d.history.acquisition.forEach(function (a) { var x = buildHistEvent("acquisition", a); if (x) kids.push(x); });
     return wrap("history", null, withExtras("history", kids));
@@ -1086,7 +1133,7 @@
     var mc = directChild(msDesc, "msContents");
     if (!mc) return;
     var summary = directChild(mc, "summary");
-    setVal("cont-summary", U.text(summary)); setVal("cont-summary-lang", attr(summary, "xml:lang"));
+    setVal("cont-summary", R.innerXml(summary)); setVal("cont-summary-lang", attr(summary, "xml:lang"));
     directChildren(mc, "msItem").forEach(function (item) {
       var block = addMsItemBlock();
       if (item.getAttribute("xml:id")) block.dataset.xmlid = item.getAttribute("xml:id");
@@ -1108,11 +1155,11 @@
       var tl = directChild(item, "textLang");
       if (tl) { setB(block, "mi-mainlang", attr(tl, "mainLang")); setMultiB(block, "mi-otherlangs", splitSpace(attr(tl, "otherLangs"))); }
       var inc = directChild(item, "incipit");
-      if (inc) { var il = directChild(inc, "locus"); setB(block, "mi-inc-from", attr(il, "from")); setB(block, "mi-inc-to", attr(il, "to")); var iq = directChild(inc, "quote"); setB(block, "mi-inc-quote", U.text(iq)); setB(block, "mi-inc-lang", attr(iq, "xml:lang")); }
+      if (inc) { var il = directChild(inc, "locus"); setB(block, "mi-inc-from", attr(il, "from")); setB(block, "mi-inc-to", attr(il, "to")); var iq = directChild(inc, "quote"); setB(block, "mi-inc-quote", R.innerXml(iq)); setB(block, "mi-inc-lang", attr(iq, "xml:lang")); }
       var exp = directChild(item, "explicit");
-      if (exp) { var el2 = directChild(exp, "locus"); setB(block, "mi-exp-from", attr(el2, "from")); setB(block, "mi-exp-to", attr(el2, "to")); var eq = directChild(exp, "quote"); setB(block, "mi-exp-quote", U.text(eq)); setB(block, "mi-exp-lang", attr(eq, "xml:lang")); }
+      if (exp) { var el2 = directChild(exp, "locus"); setB(block, "mi-exp-from", attr(el2, "from")); setB(block, "mi-exp-to", attr(el2, "to")); var eq = directChild(exp, "quote"); setB(block, "mi-exp-quote", R.innerXml(eq)); setB(block, "mi-exp-lang", attr(eq, "xml:lang")); }
       var note = directChild(item, "note");
-      setB(block, "mi-note", U.text(note)); setB(block, "mi-note-lang", attr(note, "xml:lang"));
+      setB(block, "mi-note", R.innerXml(note)); setB(block, "mi-note-lang", attr(note, "xml:lang"));
     });
     captureExtras(mc, "msContents", ["summary", "msItem"]);
   }
@@ -1139,7 +1186,7 @@
       var sd = directChild(od, "supportDesc");
       if (sd) {
         var support = directChild(sd, "support");
-        if (support) { setSel("sup-material", U.text(directChild(support, "material"))); var supNote = directChild(support, "note"); setVal("sup-note", U.text(supNote)); setVal("sup-note-lang", attr(supNote, "xml:lang")); }
+        if (support) { setSel("sup-material", U.text(directChild(support, "material"))); var supNote = directChild(support, "note"); setVal("sup-note", R.innerXml(supNote)); setVal("sup-note-lang", attr(supNote, "xml:lang")); }
         var extent = directChild(sd, "extent");
         if (extent) { setVal("ext-folios", U.text(directChild(extent, "measure"))); var dm = directChild(extent, "dimensions"); if (dm) { setVal("ext-h", U.text(directChild(dm, "height"))); setVal("ext-w", U.text(directChild(dm, "width"))); } }
         var fol = directChild(sd, "foliation");
@@ -1148,10 +1195,10 @@
         if (col) {
           setVal("col-formula", U.text(directChild(col, "formula"))); setVal("col-unit", U.text(directChild(col, "unit")));
           directChildren(col, "catchwords").forEach(function (cw) { var it = addSubTo(document.querySelector(FORM), "col-catchwords"); setB(it, "col-catchwords", U.text(cw)); });
-          var colNote = directChild(col, "note"); setVal("col-note", U.text(colNote)); setVal("col-note-lang", attr(colNote, "xml:lang"));
+          var colNote = directChild(col, "note"); setVal("col-note", R.innerXml(colNote)); setVal("col-note-lang", attr(colNote, "xml:lang"));
         }
         var cond = directChild(sd, "condition");
-        if (cond) { var condNote = directChild(cond, "note"); setVal("cond-note", U.text(condNote)); setVal("cond-note-lang", attr(condNote, "xml:lang")); var wab = directChild(cond, "ab"); setVal("cond-writing", U.text(wab)); setVal("cond-rend", attr(wab, "rend")); }
+        if (cond) { var condNote = directChild(cond, "note"); setVal("cond-note", R.innerXml(condNote)); setVal("cond-note-lang", attr(condNote, "xml:lang")); var wab = directChild(cond, "ab"); setVal("cond-writing", U.text(wab)); setVal("cond-rend", attr(wab, "rend")); }
       }
       var ld = directChild(od, "layoutDesc");
       if (ld) {
@@ -1159,7 +1206,7 @@
         if (lsum) {
           // legacy: a single <desc>"a; b"</desc> splits into one entry per feature.
           directChildren(lsum, "desc").forEach(function (dsc) { splitList(U.text(dsc)).forEach(function (f) { var it = addSubTo(document.querySelector(FORM), "lay-sum-desc"); setB(it, "lay-sum-desc", f); }); });
-          var lsumNote = directChild(lsum, "note"); setVal("lay-sum-note", U.text(lsumNote)); setVal("lay-sum-note-lang", attr(lsumNote, "xml:lang"));
+          var lsumNote = directChild(lsum, "note"); setVal("lay-sum-note", R.innerXml(lsumNote)); setVal("lay-sum-note-lang", attr(lsumNote, "xml:lang"));
         }
         directChildren(ld, "layout").forEach(function (ly) {
           var block = addLayoutBlock();
@@ -1179,7 +1226,7 @@
     var hd = directChild(phys, "handDesc");
     if (hd) {
       var hsum = directChild(hd, "summary");
-      setVal("hand-summary", U.text(hsum)); setVal("hand-summary-lang", attr(hsum, "xml:lang"));
+      setVal("hand-summary", R.innerXml(hsum)); setVal("hand-summary-lang", attr(hsum, "xml:lang"));
       directChildren(hd, "handNote").forEach(function (hn) {
         var block = addHandBlock();
         if (hn.getAttribute("xml:id")) block.dataset.xmlid = hn.getAttribute("xml:id");
@@ -1189,7 +1236,7 @@
         directChildren(hn, "placeName").forEach(function (pl) { var it = addSubTo(block, "hn-place"); setLodB(it, "hn-place", U.text(pl), attr(pl, "ref"), "place"); });
         directChildren(hn, "metamark").forEach(function (mm) { var it = addSubTo(block, "hn-metamark"); setB(it, "hn-metamark", attr(mm, "function")); setB(it, "hn-metamark-text", U.text(mm)); });
         var odt = directChild(hn, "origDate"); if (odt) F.setDateGroup(block, "hn", { when: attr(odt, "when"), from: attr(odt, "from"), to: attr(odt, "to") });
-        var note = directChild(hn, "note"); setB(block, "hn-note", U.text(note)); setB(block, "hn-note-lang", attr(note, "xml:lang"));
+        var note = directChild(hn, "note"); setB(block, "hn-note", R.innerXml(note)); setB(block, "hn-note-lang", attr(note, "xml:lang"));
       });
     }
 
@@ -1198,17 +1245,17 @@
       var block = addScriptBlock();
       setB(block, "sc-lang", sn.getAttribute("xml:lang")); setB(block, "sc-script", sn.getAttribute("script"));
       setB(block, "sc-style", sn.getAttribute("style")); setB(block, "sc-rend", sn.getAttribute("rend"));
-      var note = directChild(sn, "note"); setB(block, "sc-note", U.text(note)); setB(block, "sc-note-lang", attr(note, "xml:lang"));
+      var note = directChild(sn, "note"); setB(block, "sc-note", R.innerXml(note)); setB(block, "sc-note-lang", attr(note, "xml:lang"));
     });
 
     var dd = directChild(phys, "decoDesc");
     if (dd) {
       var dsum = directChild(dd, "summary");
-      setVal("deco-summary", U.text(dsum)); setVal("deco-summary-lang", attr(dsum, "xml:lang"));
+      setVal("deco-summary", R.innerXml(dsum)); setVal("deco-summary-lang", attr(dsum, "xml:lang"));
       directChildren(dd, "decoNote").forEach(function (dn) {
         var block = addDecoBlock();
         directChildren(dn, "desc").forEach(function (dsc) { splitList(U.text(dsc)).forEach(function (f) { var it = addSubTo(block, "dec-desc"); setB(it, "dec-desc", f); }); }); // legacy split
-        var note = directChild(dn, "note"); setB(block, "dec-note", U.text(note)); setB(block, "dec-note-lang", attr(note, "xml:lang"));
+        var note = directChild(dn, "note"); setB(block, "dec-note", R.innerXml(note)); setB(block, "dec-note-lang", attr(note, "xml:lang"));
       });
     }
 
@@ -1221,10 +1268,10 @@
         setB(block, "add-type", U.text(directChild(it, "objectType")));
         var l = directChild(it, "locus"); setB(block, "add-locus-from", attr(l, "from")); setB(block, "add-locus-to", attr(l, "to"));
         directChildren(it, "quote").forEach(function (qt) {
-          if (qt.getAttribute("type") === "transcription") { setB(block, "add-transcr", U.text(qt)); setB(block, "add-transcr-lang", attr(qt, "xml:lang")); }
-          if (qt.getAttribute("type") === "translation") { setB(block, "add-transl", U.text(qt)); setB(block, "add-transl-lang", attr(qt, "xml:lang")); }
+          if (qt.getAttribute("type") === "transcription") { setB(block, "add-transcr", R.innerXml(qt)); setB(block, "add-transcr-lang", attr(qt, "xml:lang")); }
+          if (qt.getAttribute("type") === "translation") { setB(block, "add-transl", R.innerXml(qt)); setB(block, "add-transl-lang", attr(qt, "xml:lang")); }
         });
-        var note = directChild(it, "note"); setB(block, "add-note", U.text(note)); setB(block, "add-note-lang", attr(note, "xml:lang"));
+        var note = directChild(it, "note"); setB(block, "add-note", R.innerXml(note)); setB(block, "add-note-lang", attr(note, "xml:lang"));
       });
     }
 
@@ -1238,7 +1285,7 @@
           directChildren(deco, "origPlace").forEach(function (op) { var it = addSubTo(document.querySelector(FORM), "bind-place"); setLodB(it, "bind-place", U.text(op), attr(op, "ref"), "place"); });
           var odt2 = directChild(deco, "origDate"); if (odt2) F.setDateGroup(document.querySelector(FORM), "bind", { when: attr(odt2, "when"), from: attr(odt2, "from"), to: attr(odt2, "to") });
           setVal("bind-material", U.text(directChild(deco, "material")));
-          var bindNote = directChild(deco, "note"); setVal("bind-note", U.text(bindNote)); setVal("bind-note-lang", attr(bindNote, "xml:lang"));
+          var bindNote = directChild(deco, "note"); setVal("bind-note", R.innerXml(bindNote)); setVal("bind-note-lang", attr(bindNote, "xml:lang"));
           var dm = directChild(deco, "dimensions"); if (dm) { setVal("bind-h", U.text(directChild(dm, "height"))); setVal("bind-w", U.text(directChild(dm, "width"))); setVal("bind-depth", U.text(directChild(dm, "depth"))); }
         }
         var cond2 = directChild(binding, "condition"); if (cond2) { setVal("bind-condition", attr(cond2, "key")); setVal("bind-condition-text", U.text(cond2)); }
@@ -1250,9 +1297,9 @@
       var alist = directChild(am, "list");
       if (alist) directChildren(alist, "item").forEach(function (it) {
         var block = addAccMatBlock();
-        var note = directChild(it, "note"); setB(block, "acc-note", U.text(note)); setB(block, "acc-note-lang", attr(note, "xml:lang"));
+        var note = directChild(it, "note"); setB(block, "acc-note", R.innerXml(note)); setB(block, "acc-note-lang", attr(note, "xml:lang"));
         var accPn = directChild(it, "persName"); setLodB(block, "acc-person", U.text(accPn), attr(accPn, "ref"), "person");
-        var qt = directChild(it, "quote"); setB(block, "acc-quote", U.text(qt)); setB(block, "acc-quote-lang", attr(qt, "xml:lang"));
+        var qt = directChild(it, "quote"); setB(block, "acc-quote", R.innerXml(qt)); setB(block, "acc-quote-lang", attr(qt, "xml:lang"));
         var bl = directChild(it, "bibl");
         if (bl) { setB(block, "acc-title", U.text(directChild(bl, "title"))); var cr = directChild(bl, "citedRange"); setB(block, "acc-cited", U.text(cr)); if (cr) setB(block, "acc-unit", attr(cr, "unit")); setB(block, "acc-ptr", attr(directChild(bl, "ptr"), "target")); }
       });
@@ -1266,16 +1313,16 @@
     directChildren(ev, "placeName").forEach(function (pl) { var it = addSubTo(block, "hv-place"); setLodB(it, "hv-place", U.text(pl), attr(pl, "ref"), "place"); });
     var l = directChild(ev, "locus"); setB(block, "hv-locus-from", attr(l, "from")); setB(block, "hv-locus-to", attr(l, "to"));
     directChildren(ev, "persName").forEach(function (pn) { var it = addSubTo(block, "hv-person"); setLodB(it, "hv-person", U.text(pn), attr(pn, "ref"), "person"); setB(it, "hv-role", attr(pn, "role")); });
-    var qt = directChild(ev, "quote"); setB(block, "hv-quote", U.text(qt)); setB(block, "hv-quote-lang", attr(qt, "xml:lang"));
+    var qt = directChild(ev, "quote"); setB(block, "hv-quote", R.innerXml(qt)); setB(block, "hv-quote-lang", attr(qt, "xml:lang"));
     setB(block, "hv-stamp", U.text(directChild(ev, "stamp")));
-    var note = directChild(ev, "note"); setB(block, "hv-note", U.text(note)); setB(block, "hv-note-lang", attr(note, "xml:lang"));
+    var note = directChild(ev, "note"); setB(block, "hv-note", R.innerXml(note)); setB(block, "hv-note-lang", attr(note, "xml:lang"));
   }
 
   function importHistory(msDesc) {
     var hist = directChild(msDesc, "history");
     if (!hist) return;
     var sum = directChild(hist, "summary");
-    setVal("hist-summary", U.text(sum)); setVal("hist-summary-lang", attr(sum, "xml:lang"));
+    setVal("hist-summary", R.innerXml(sum)); setVal("hist-summary-lang", attr(sum, "xml:lang"));
     directChildren(hist, "provenance").forEach(function (p) { fillHistBlock(addProvBlock(), p); });
     directChildren(hist, "acquisition").forEach(function (a) { fillHistBlock(addAcqBlock(), a); });
     captureExtras(hist, "history", ["summary", "provenance", "acquisition"]);
@@ -1341,6 +1388,7 @@
     if (legacy) notices.unshift("Imported from MANO-format file; review all sections.");
     var kind = (legacy || notices.length) ? "warning" : "success";
     F.markClean(); // freshly imported record is not yet dirty
+    upgradeStaticRich(); // seed static summary/note editors (blocks self-upgrade)
     showAlert((legacy ? "" : "Imported. ") + notices.join(" ") || "Imported. Review all sections before downloading.", kind);
     return hdr;
   }
@@ -1431,6 +1479,7 @@
     });
     F.initTooltips(document.getElementById("msFormContainer"));
     F.markClean(); // fresh form
+    upgradeStaticRich(); // rich summary/note editors on the empty form
   }
 
   var ADD_HANDLERS = {
@@ -1441,7 +1490,7 @@
   };
 
   function init() {
-    U = window.BA.util; F = window.BA.form; H = window.BA.header;
+    U = window.BA.util; F = window.BA.form; H = window.BA.header; R = window.BA.rich;
     V = window.BA.uiText.vocab; LBLROOT = window.BA.uiText.labels.mss;
 
     window.BA.authority.load("person");

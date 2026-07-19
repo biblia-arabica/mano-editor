@@ -525,6 +525,17 @@
     return U.el(kind, null, kids);
   }
 
+  // Rich-text (Round 6, W02): upgrade the static note textarea to a JinnTap
+  // editor after the form is rendered/imported. No-op when rich text is
+  // disabled or the module can't load (plain textarea stays), and in view mode
+  // (W03 renders rich HTML there instead).
+  function upgradeRichFields() {
+    if (!window.BA.rich) return;
+    if (F.isViewMode && F.isViewMode()) return;
+    var field = document.querySelector('#personForm [name="noteText"]');
+    if (field) window.BA.rich.upgradeWhenReady(field);
+  }
+
   function buildPersonBody(d) {
     var parts = [];
 
@@ -534,11 +545,12 @@
     });
 
     if (d.note.text) {
+      // Rich field: embed fragment markup raw, escape legacy plain text.
       parts.push(U.el("note", {
         "xml:lang": d.note.lang,
         resp: d.note.resp ? "#" + d.note.resp : "",
         type: d.note.type
-      }, U.esc(d.note.text)));
+      }, window.BA.rich.embed(d.note.text)));
     }
 
     if (d.state.label) {
@@ -678,7 +690,8 @@
           addNameBlock(nameFrom(ch));
           break;
         case "note":
-          document.querySelector('#personForm [name="noteText"]').value = U.text(ch);
+          // Rich field: store the note's inner XML fragment (plain text stays plain).
+          document.querySelector('#personForm [name="noteText"]').value = window.BA.rich.innerXml(ch);
           document.querySelector('#personForm [name="noteLang"]').value = ch.getAttribute("xml:lang") || "";
           document.querySelector('#personForm [name="noteType"]').value = ch.getAttribute("type") || "";
           document.querySelector('#personForm [name="noteResp"]').value = (ch.getAttribute("resp") || "").replace(/^#/, "");
@@ -735,6 +748,7 @@
     refreshSourceSelects();
     F.initTooltips(document.getElementById("personForm"));
     F.markClean(); // freshly imported record is not yet dirty
+    upgradeRichFields(); // seed the JinnTap note editor from the imported fragment
     showAlert((recordNotice ? recordNotice + " " : "") + "Imported. Review all sections before downloading.",
       recordNotice ? "warning" : "success");
     return hdr;
@@ -842,6 +856,7 @@
     });
     F.initTooltips(document.getElementById("personForm"));
     F.markClean(); // fresh form
+    upgradeRichFields(); // rich note editor on the empty form
   }
 
   function init() {

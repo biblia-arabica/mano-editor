@@ -1,0 +1,137 @@
+{
+  "_comment": "MANO subset schema for JinnTap (Round 6, W01). ONE schema for all rich fields (summary/note/quote). Derived from @jinntec/jinntap@1.31.0 src/schema.json. Bindings fixed by CHANGES-R6 mapping table: Paragraph=<p>, LineBreak=<lb/>, Italic=<emph rend='italic'>, Bold=<emph rend='bold'>, Headline=<hi rend='h1'> (inline). The head/note/listAnnotation entries are non-interactive scaffolding required to boot: JinnTap's document node hard-codes the content model 'heading* block+ listAnnotation?' (createDocumentExtension), and its TEI import always appends a <listAnnotation> — so a heading-group node, listAnnotation, and note (listAnnotation's content) must resolve or the ProseMirror schema fails to build. They carry no toolbar/keyboard, so they add no user-facing controls.",
+  "attributes": {},
+  "toolbar": {},
+  "selects": {
+    "Headline": {
+      "label": "<i class='bi bi-type-h1'></i>",
+      "order": 4
+    }
+  },
+  "schema": {
+    "p": {
+      "type": "block",
+      "priority": 100,
+      "toolbar": {
+        "Paragraph": {
+          "attributes": {},
+          "label": "<i class='bi bi-paragraph'></i>",
+          "order": 1
+        }
+      }
+    },
+    "lb": {
+      "type": "empty",
+      "label": "&#x21B5;",
+      "attributes": {
+        "n": {
+          "type": "string"
+        }
+      },
+      "toolbar": {
+        "LineBreak": {
+          "attributes": {},
+          "label": "<i class='bi bi-arrow-return-left'></i>",
+          "order": 2
+        }
+      }
+    },
+    "emph": {
+      "type": "inline",
+      "attributes": {
+        "rend": {
+          "type": "string",
+          "default": "italic",
+          "enum": ["italic", "bold"]
+        }
+      },
+      "keyboard": {
+        "Cmd-i": {
+          "attributes": {
+            "rend": "italic"
+          }
+        },
+        "Cmd-b": {
+          "attributes": {
+            "rend": "bold"
+          }
+        },
+        "ctrl-i": {
+          "attributes": {
+            "rend": "italic"
+          }
+        },
+        "ctrl-b": {
+          "attributes": {
+            "rend": "bold"
+          }
+        }
+      },
+      "toolbar": {
+        "Italic": {
+          "attributes": {
+            "rend": "italic"
+          },
+          "label": "<i class='bi bi-type-italic'></i>",
+          "order": 6
+        },
+        "Bold": {
+          "attributes": {
+            "rend": "bold"
+          },
+          "label": "<i class='bi bi-type-bold'></i>",
+          "order": 5
+        }
+      }
+    },
+    "hi": {
+      "type": "inline",
+      "attributes": {
+        "rend": {
+          "type": "string",
+          "default": "h1",
+          "enum": ["h1", "h2", "h3"]
+        }
+      },
+      "toolbar": {
+        "Heading 1": {
+          "select": "Headline",
+          "attributes": {
+            "rend": "h1"
+          },
+          "label": "<i class='bi bi-type-h1'></i>"
+        },
+        "Heading 2": {
+          "select": "Headline",
+          "attributes": {
+            "rend": "h2"
+          },
+          "label": "<i class='bi bi-type-h2'></i>"
+        },
+        "Heading 3": {
+          "select": "Headline",
+          "attributes": {
+            "rend": "h3"
+          },
+          "label": "<i class='bi bi-type-h3'></i>"
+        }
+      }
+    },
+    "head": {
+      "type": "block",
+      "group": "heading",
+      "content": "inline*"
+    },
+    "note": {
+      "type": "block",
+      "group": "note",
+      "content": "p+"
+    },
+    "listAnnotation": {
+      "type": "list",
+      "group": "",
+      "defining": true,
+      "content": "note*"
+    }
+  }
+}

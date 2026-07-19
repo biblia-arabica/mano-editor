@@ -484,3 +484,108 @@ body.view-mode .form-control:disabled, body.view-mode .form-select:disabled
 body.view-mode .form-label
   { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
     color: #9c9184; margin-bottom: 0.05rem; }
+
+/* ---- R6/R7 (X02): JinnTap rich-text editor (BA.rich) ---- */
+/* Constrain the embedded editor to feel like the form control it replaces.
+   The component ships a two-column grid ("toolbar aside" / "editor aside") with a
+   minmax(220px,460px) aside track and a 50vh bottom margin, and injects its own
+   stylesheet at runtime AFTER this file — so a bare `jinn-tap {}` rule loses the
+   cascade to it. Override at higher specificity (.ba-rich-widget, set on every
+   upgraded widget) to collapse to a single column (no leftover aside column) and
+   drop the trailing 50vh margin (the vertical dead space under the pane). */
+jinn-tap.ba-rich-widget {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas: "toolbar" "editor";
+  column-gap: 0;
+  margin-bottom: 0;
+  min-height: 6rem;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: .375rem;
+}
+/* This subset exposes exactly five formatting actions via the toolbar; hide the
+   component's sidebar (navigation + attribute panel) — no attribute editing UI. */
+jinn-tap .jinn-tap-aside { display: none; }
+/* The editor pane grows with content and stops there (no reserved min-height
+   beyond the widget's own). */
+jinn-tap.ba-rich-widget .editor-area { min-height: 0; }
+
+/* -- Toolbar: horizontal Bootstrap-like bar. The component emits Pico markup
+   (ul.toolbar > li > a.outline.toolbar-button; grouped entries as
+   li > details.dropdown > summary + ul > li > a), which Bootstrap leaves as a
+   bulleted list — style exactly those selectors, no Pico import. -- */
+jinn-tap .toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .15rem;
+  list-style: none;
+  margin: 0;
+  padding: .25rem .4rem;
+  border-bottom: var(--bs-border-width) solid var(--bs-border-color);
+}
+jinn-tap .toolbar li { margin: 0; list-style: none; }
+jinn-tap .toolbar a.toolbar-button,
+jinn-tap .toolbar details.dropdown summary {
+  display: inline-flex;
+  align-items: center;
+  padding: .25rem .45rem;
+  border-radius: .25rem;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+jinn-tap .toolbar a.toolbar-button:hover,
+jinn-tap .toolbar details.dropdown summary:hover { background: var(--bs-tertiary-bg); }
+jinn-tap .toolbar a.toolbar-button.active { background: var(--bs-primary); color: #fff; }
+jinn-tap .toolbar a.toolbar-button.disabled { opacity: .4; pointer-events: none; }
+
+/* Headline dropdown (details.dropdown): floating Bootstrap-like menu, caret,
+   no native disclosure marker. Closes itself on selection (component sets
+   details.open=false in the item click handler), so no JS is needed. */
+jinn-tap .toolbar details.dropdown { position: relative; }
+jinn-tap .toolbar details.dropdown summary { list-style: none; }
+jinn-tap .toolbar details.dropdown summary::-webkit-details-marker { display: none; }
+jinn-tap .toolbar details.dropdown summary::after { content: "▾"; margin-left: .2rem; font-size: .8em; }
+jinn-tap .toolbar details.dropdown > ul {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  min-width: 8rem;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: .375rem;
+  box-shadow: var(--bs-box-shadow-sm);
+  list-style: none;
+  margin: .125rem 0 0;
+  padding: .25rem;
+}
+jinn-tap .toolbar details.dropdown > ul a {
+  display: block;
+  width: 100%;
+  padding: .25rem .5rem;
+  border-radius: .25rem;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+jinn-tap .toolbar details.dropdown > ul a:hover { background: var(--bs-tertiary-bg); }
+
+/* -- In-editor content rendering. XML stays inline marks + p + empty lb; block
+   display here is presentation only. -- */
+jinn-tap tei-p { display: block; margin: 0 0 .5rem; }
+jinn-tap tei-p:last-child { margin-bottom: 0; }
+jinn-tap tei-lb { display: block; height: 0; }
+jinn-tap tei-hi[rend="h1"],
+jinn-tap tei-hi[rend="h2"],
+jinn-tap tei-hi[rend="h3"] { display: block; font-weight: 600; margin: .5rem 0 .25rem; }
+jinn-tap tei-hi[rend="h1"] { font-size: 1.3em; }
+jinn-tap tei-hi[rend="h2"] { font-size: 1.15em; }
+jinn-tap tei-hi[rend="h3"] { font-size: 1.05em; }
+jinn-tap tei-emph[rend="bold"] { font-weight: bold; font-style: normal; }
+jinn-tap tei-emph[rend="italic"] { font-style: italic; }
+/* View-mode / collection rendering of a headline (BA.rich.renderHtml, W03). */
+.rich-h1 { font-size: 1.3em; font-weight: 600; }
+.rich-h2 { font-size: 1.15em; font-weight: 600; }
+.rich-h3 { font-size: 1.05em; font-weight: 600; }

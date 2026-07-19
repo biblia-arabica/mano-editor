@@ -7,7 +7,7 @@
 (function () {
   "use strict";
 
-  var U, F, H, LBL, V;
+  var U, F, H, LBL, V, R;
 
   function vocab(key) { return (V[key] || []); }
   function lbl(key) { return LBL[key] || { label: key, required: false }; }
@@ -283,6 +283,7 @@
     refreshSourceSelects();
     if (data.source) F.setSourceSelect(block.querySelector(".qt-source"), data.source);
     F.initTooltips(block);
+    richUpgrade(block.querySelector(".qt-text")); // rich quote editor for this block
     return block;
   }
 
@@ -301,7 +302,25 @@
       '<select class="form-select nt-lang">' + optionsHtml(vocab("langNoteWork"), data.lang) + "</select></div>" +
       "</div>");
     F.initTooltips(block);
+    richUpgrade(block.querySelector(".nt-text")); // rich note editor for this block
     return block;
+  }
+
+  // ---------- rich-text (Round 6, W02) ----------
+  // Upgrade a textarea to a JinnTap editor when the module is available. No-op
+  // when rich text is disabled / the module can't load (plain textarea stays)
+  // and in read-only view mode (W03 renders rich HTML there instead).
+  function richUpgrade(textarea) {
+    if (!window.BA.rich || !textarea) return;
+    if (F.isViewMode && F.isViewMode()) return;
+    window.BA.rich.upgradeWhenReady(textarea);
+  }
+  // Static incipit / explicit fields, upgraded after form render and import.
+  function upgradeStaticRich() {
+    var form = document.getElementById("workForm");
+    if (!form) return;
+    richUpgrade(form.querySelector('[name="incText"]'));
+    richUpgrade(form.querySelector('[name="expText"]'));
   }
 
   var biblCounter = 0;
@@ -479,19 +498,22 @@
       parts.push(U.el("date", { when: d.date.when, from: d.date.from, to: d.date.to, source: d.date.source }));
     }
 
+    // Rich fields (incipit / explicit / quote / note): embed fragment markup
+    // raw, escape legacy plain text (BA.rich.embed). Untouched legacy re-exports
+    // byte-identical.
     if (d.incipit.text) {
-      parts.push(U.el("incipit", { "xml:lang": d.incipit.lang, source: d.incipit.source }, U.esc(d.incipit.text)));
+      parts.push(U.el("incipit", { "xml:lang": d.incipit.lang, source: d.incipit.source }, R.embed(d.incipit.text)));
     }
     if (d.explicit.text) {
-      parts.push(U.el("explicit", { "xml:lang": d.explicit.lang, source: d.explicit.source }, U.esc(d.explicit.text)));
+      parts.push(U.el("explicit", { "xml:lang": d.explicit.lang, source: d.explicit.source }, R.embed(d.explicit.text)));
     }
 
     d.quotes.forEach(function (qt) {
-      parts.push(U.el("quote", { "xml:lang": qt.lang, type: qt.type, source: qt.source }, U.esc(qt.text)));
+      parts.push(U.el("quote", { "xml:lang": qt.lang, type: qt.type, source: qt.source }, R.embed(qt.text)));
     });
 
     d.notes.forEach(function (nt) {
-      parts.push(U.el("note", { "xml:lang": nt.lang, type: nt.type }, U.esc(nt.text)));
+      parts.push(U.el("note", { "xml:lang": nt.lang, type: nt.type }, R.embed(nt.text)));
     });
 
     d.bibl.forEach(function (b) {
@@ -610,26 +632,26 @@
           });
           break;
         case "incipit":
-          document.querySelector('#workForm [name="incText"]').value = U.text(ch);
+          document.querySelector('#workForm [name="incText"]').value = R.innerXml(ch);
           document.querySelector('#workForm [name="incLang"]').value = ch.getAttribute("xml:lang") || "";
           refreshSourceSelects();
           F.setSourceSelect(document.querySelector('#workForm [name="incSource"]'), ch.getAttribute("source") || "");
           break;
         case "explicit":
-          document.querySelector('#workForm [name="expText"]').value = U.text(ch);
+          document.querySelector('#workForm [name="expText"]').value = R.innerXml(ch);
           document.querySelector('#workForm [name="expLang"]').value = ch.getAttribute("xml:lang") || "";
           refreshSourceSelects();
           F.setSourceSelect(document.querySelector('#workForm [name="expSource"]'), ch.getAttribute("source") || "");
           break;
         case "quote":
           addQuoteBlock({
-            text: U.text(ch), lang: ch.getAttribute("xml:lang") || "",
+            text: R.innerXml(ch), lang: ch.getAttribute("xml:lang") || "",
             type: ch.getAttribute("type") || "", source: ch.getAttribute("source") || ""
           });
           break;
         case "note":
           addNoteBlock({
-            text: U.text(ch), lang: ch.getAttribute("xml:lang") || "", type: ch.getAttribute("type") || ""
+            text: R.innerXml(ch), lang: ch.getAttribute("xml:lang") || "", type: ch.getAttribute("type") || ""
           });
           break;
         case "bibl":
@@ -642,6 +664,7 @@
     refreshSourceSelects();
     F.initTooltips(document.getElementById("workForm"));
     F.markClean(); // freshly imported record is not yet dirty
+    upgradeStaticRich(); // seed the incipit/explicit editors (quote/note blocks self-upgrade)
     showAlert((recordNotice ? recordNotice + " " : "") + "Imported. Review all sections before downloading.",
       recordNotice ? "warning" : "success");
     return hdr;
@@ -756,10 +779,11 @@
     });
     F.initTooltips(document.getElementById("workForm"));
     F.markClean(); // fresh form
+    upgradeStaticRich(); // rich incipit/explicit editors on the empty form
   }
 
   function init() {
-    U = window.BA.util; F = window.BA.form; H = window.BA.header;
+    U = window.BA.util; F = window.BA.form; H = window.BA.header; R = window.BA.rich;
     LBL = window.BA.uiText.labels.work.work;
     V = window.BA.uiText.vocab;
 

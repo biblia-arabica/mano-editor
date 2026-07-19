@@ -105,6 +105,102 @@
     return out;
   }
 
+  // ---------- rich-text fields (R6) ----------
+
+  // Rich-capable field values per type: [{ value, ctx }]. Kept in step with the
+  // fields upgraded to JinnTap in W01/W02 (NOT the layoutDesc/page-layout
+  // summary, which stays structured and is excluded from rich text).
+  function collectRich(type, d) {
+    var out = [];
+    function add(v, ctx) { if (v != null && String(v) !== "") out.push({ value: v, ctx: ctx }); }
+    if (type === "place") {
+      if (d.desc) add(d.desc.text, "Description");
+    } else if (type === "person") {
+      if (d.note) add(d.note.text, "Note");
+    } else if (type === "work") {
+      if (d.incipit) add(d.incipit.text, "Incipit");
+      if (d.explicit) add(d.explicit.text, "Explicit");
+      (d.quotes || []).forEach(function (q, i) { add(q.text, "Quote " + (i + 1)); });
+      (d.notes || []).forEach(function (n, i) { add(n.text, "Note " + (i + 1)); });
+    } else if (type === "manuscript") {
+      add(d.summary, "Contents summary");
+      (d.msItems || []).forEach(function (m, i) {
+        add(m.incQuote, "Text unit " + (i + 1) + " incipit");
+        add(m.expQuote, "Text unit " + (i + 1) + " explicit");
+        add(m.note, "Text unit " + (i + 1) + " note");
+      });
+      if (d.support) { add(d.support.note, "Support note"); add(d.support.colNote, "Collation note"); add(d.support.condNote, "Condition note"); }
+      if (d.layout) add(d.layout.sumNote, "Page-layout summary note");
+      if (d.hands) {
+        add(d.hands.summary, "Hand summary");
+        (d.hands.scripts || []).forEach(function (s, i) { add(s.note, "Script " + (i + 1) + " note"); });
+        (d.hands.handNotes || []).forEach(function (h, i) { add(h.note, "Hand " + (i + 1) + " note"); });
+      }
+      if (d.deco) {
+        add(d.deco.summary, "Text-layout summary");
+        (d.deco.notes || []).forEach(function (n, i) { add(n.note, "Text-layout feature " + (i + 1) + " note"); });
+      }
+      (d.additions || []).forEach(function (a, i) {
+        add(a.transcr, "Incodicated document " + (i + 1) + " transcription");
+        add(a.transl, "Incodicated document " + (i + 1) + " translation");
+        add(a.note, "Incodicated document " + (i + 1) + " note");
+      });
+      if (d.binding) add(d.binding.note, "Binding note");
+      (d.accMats || []).forEach(function (a, i) {
+        add(a.note, "Heritage document " + (i + 1) + " note");
+        add(a.quote, "Heritage document " + (i + 1) + " quote");
+      });
+      if (d.history) {
+        add(d.history.summary, "History summary");
+        (d.history.provenance || []).forEach(function (p, i) { add(p.quote, "Provenance " + (i + 1) + " quote"); add(p.note, "Provenance " + (i + 1) + " note"); });
+        (d.history.acquisition || []).forEach(function (a, i) { add(a.quote, "Acquisition " + (i + 1) + " quote"); add(a.note, "Acquisition " + (i + 1) + " note"); });
+      }
+    }
+    return out;
+  }
+
+  // One whitelist for all rich fields (CHANGES-R6 mapping table): paragraph,
+  // line break, italic/bold via emph@rend, headline via hi@rend="h1".
+  var RICH_ALLOWED = { p: true, lb: true, emph: true, hi: true };
+  var RICH_UNSUPPORTED = "Unsupported markup — allowed: paragraphs, line breaks, headlines, bold, italic.";
+
+  // Returns an issue message if the parsed fragment uses any element or
+  // attribute outside the whitelist, else null.
+  function richMarkupIssue(doc) {
+    var els = doc.documentElement.getElementsByTagName("*");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      var name = el.localName;
+      if (!RICH_ALLOWED[name]) return RICH_UNSUPPORTED;
+      if (name === "emph") {
+        var r = el.getAttribute("rend");
+        if (r !== "italic" && r !== "bold") return RICH_UNSUPPORTED;
+      } else if (name === "hi") {
+        var hr = el.getAttribute("rend");
+        if (hr !== "h1" && hr !== "h2" && hr !== "h3") return RICH_UNSUPPORTED;
+      } else if (name === "lb") {
+        if (el.childNodes && el.childNodes.length) return RICH_UNSUPPORTED;
+      }
+    }
+    return null;
+  }
+
+  // Validate every rich-capable field: markup must be well-formed and use only
+  // the whitelisted elements/attributes. Belt-and-braces — JinnTap output is
+  // always valid, but a textarea-fallback record could be hand-typed.
+  function checkRich(type, d, issues) {
+    if (!(window.BA.util && window.BA.util.parse)) return; // no XML parser (non-DOM env)
+    collectRich(type, d).forEach(function (f) {
+      var v = String(f.value == null ? "" : f.value);
+      if (!/^\s*</.test(v)) return; // plain text carries no markup to check
+      var doc;
+      try { doc = window.BA.util.parse("<x>" + v + "</x>"); }
+      catch (e) { issues.push(mand(f.ctx, "Text formatting is malformed and cannot be saved — re-enter it, or remove stray “<” characters.")); return; }
+      var msg = richMarkupIssue(doc);
+      if (msg) issues.push(mand(f.ctx, msg));
+    });
+  }
+
   // ---------- per-type mandatory field rules ----------
 
   validate.rules = {
@@ -172,6 +268,8 @@
     collectRefs(type, d).forEach(function (r) {
       if (r.value && !r.uri) issues.push(rec(r.ctx, r.ctx + " has text but is not linked to a record."));
     });
+
+    checkRich(type, d, issues);
 
     return issues;
   };

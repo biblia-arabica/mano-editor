@@ -303,6 +303,19 @@
     };
   }
 
+  // ---------- rich-text pilot (Round 6, W01) ----------
+  // Upgrade the description-quote textarea to a JinnTap editor once the module
+  // is available. Called after every form render (new record + import). No-op
+  // when rich text is disabled or the CDN module can't load (progressive
+  // enhancement — the plain textarea stays), and in read-only view mode.
+  function upgradeRichFields() {
+    if (!window.BA.rich) return;
+    if (F.isViewMode && F.isViewMode()) return;
+    var field = document.querySelector('#placeForm [name="descQuote"]');
+    if (!field) return;
+    window.BA.rich.load().then(function (ok) { if (ok) window.BA.rich.upgrade(field); });
+  }
+
   // ---------- serialization ----------
 
   function geoOut(geoInput) {
@@ -322,8 +335,11 @@
     });
 
     if (d.desc.text) {
+      // Rich field: embed TEI fragment markup raw, escape legacy plain text
+      // (BA.rich.embed). Untouched legacy records re-export byte-identical.
       parts.push(U.el("desc", null,
-        U.el("quote", { source: d.desc.source, "xml:lang": d.desc.lang }, U.esc(d.desc.text))));
+        U.el("quote", { source: d.desc.source, "xml:lang": d.desc.lang },
+          window.BA.rich.embed(d.desc.text))));
     }
 
     var loc = [];
@@ -415,7 +431,10 @@
 
     var quote = U.q(doc, "place/desc/quote");
     if (quote) {
-      document.querySelector('#placeForm [name="descQuote"]').value = U.text(quote);
+      // Rich fields store the quote's inner XML fragment in the textarea (the
+      // widget's storage); a text-only legacy quote stays plain text.
+      document.querySelector('#placeForm [name="descQuote"]').value =
+        (window.BA.rich ? window.BA.rich.innerXml(quote) : U.text(quote));
       document.querySelector('#placeForm [name="descLang"]').value = quote.getAttribute("xml:lang") || "";
       refreshSourceSelects();
       F.setSourceSelect(document.querySelector("#placeForm .desc-source"), quote.getAttribute("source") || "");
@@ -445,6 +464,7 @@
 
     F.initTooltips(document.getElementById("placeForm"));
     F.markClean(); // freshly imported record is not yet dirty
+    upgradeRichFields(); // seed the JinnTap editor from the imported fragment
     showAlert((recordNotice ? recordNotice + " " : "") + "Imported. Review all sections before downloading.",
       recordNotice ? "warning" : "success");
     return hdr;
@@ -550,6 +570,7 @@
     });
     F.initTooltips(document.getElementById("placeForm"));
     F.markClean(); // fresh form
+    upgradeRichFields(); // rich description editor on the empty form
   }
 
   function init() {
