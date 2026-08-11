@@ -18,7 +18,7 @@ window.BA = {
       place: "data/places",
       work: "data/works"
     },
-    indexPath: "index", // relative URL: index/index-person.json etc.
+    indexPath: "https://raw.githubusercontent.com/biblia-arabica/manuscript-data/main/index", // relative URL: index/index-person.json etc.
 
     // Live index rebuild. When enabled, authority lookups rebuild the
     // relevant index client-side from the repository's data/ folder (one GitHub
@@ -31,7 +31,7 @@ window.BA = {
     // used for the Data Collection "Contribute to Collection" links.
     // While "CHANGE-ME", the Contribute buttons stay hidden (same pattern as
     // geonamesUsername / Zotero libraryId).
-    repoUrl: "https://github.com/biblia-arabica/mano-editor",
+    repoUrl: "https://github.com/biblia-arabica/manuscript-data",
 
     // Submit-to-repository target. {owner, repo} are derived from repoUrl
     // via BA.github.repoInfo(); only the branch is configurable here.
