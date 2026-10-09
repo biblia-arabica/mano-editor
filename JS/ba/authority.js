@@ -293,12 +293,25 @@
     return null;
   };
 
-  // Suggested next numeric id (max + 1; "1" for an empty index).
+  // Next record id for `type`: highest numeric id + 1 ("1" when empty).
+  // The repository's data folder (data/{type}/N.xml, listed fresh via the
+  // GitHub contents API, no cache) is the source of truth. The authority index
+  // is consulted as well, so the result is also correct when the listing is
+  // unavailable (offline, rate-limited) — in that case it may lag behind the
+  // repository by up to the index cache TTL.
   authority.nextId = function (type) {
-    return authority.load(type).then(function (recs) {
+    var listing = (window.BA.github && window.BA.github.listDataFiles)
+      ? window.BA.github.listDataFiles(type).catch(function () { return null; })
+      : Promise.resolve(null);
+    return Promise.all([listing, authority.load(type)]).then(function (res) {
+      var files = res[0], recs = res[1];
+      if (!files) warnOnce("nextId-" + type, "repository listing unavailable for " + type +
+        "; next id derived from the authority index only");
+      var ids = (files || []).map(function (f) { return f.name.replace(/\.xml$/, ""); })
+        .concat(recs.map(function (r) { return r.id; }));
       var max = 0;
-      recs.forEach(function (r) {
-        var n = parseInt(r.id, 10);
+      ids.forEach(function (id) {
+        var n = parseInt(id, 10);
         if (!isNaN(n) && n > max) max = n;
       });
       return String(max + 1);

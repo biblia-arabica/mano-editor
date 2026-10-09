@@ -176,9 +176,10 @@
 
   header.recordBlockHtml = function (entityType) {
     return '<div class="row">' +
-      '<div class="col-md-4"><label class="form-label">Record ID' + STAR + "</label>" +
+      '<div class="col-md-4"><label class="form-label">Record ID ' +
+      '<i class="bi bi-info-circle text-muted" data-bs-toggle="tooltip" title="Assigned automatically: the next free number in the repository. Cannot be edited."></i></label>' +
       '<div class="input-group">' +
-      '<input type="text" class="form-control" name="recordId">' +
+      '<input type="text" class="form-control" name="recordId" readonly tabindex="-1" aria-readonly="true">' +
       '<button type="button" class="btn btn-sm btn-outline-secondary" id="reloadIndexBtn" title="Reload records"><i class="bi bi-arrow-clockwise"></i></button>' +
       "</div>" +
       '<small class="text-muted" id="recordUri"></small></div>' +

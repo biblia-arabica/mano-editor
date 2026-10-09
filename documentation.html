@@ -295,7 +295,7 @@
               <h6 class="mt-4">Record metadata</h6>
               <p>The first block is shared by all four editors and records information about the record itself rather than its subject:</p>
               <ul>
-                <li><strong>Record ID</strong> — the numeric id; combined with the type it forms the record URI shown beneath the field,</li>
+                <li><strong>Record ID</strong> — the numeric id, assigned automatically and not editable: when the editor opens (or <em>New record</em> is clicked) it lists the type's folder in the repository (e.g. <code>data/works/</code>), takes the highest numbered file and assigns the next number. Records opened from the repository or uploaded keep their existing id; an uploaded file without a recoverable id is given the next free number. Combined with the type, the id forms the record URI shown beneath the field,</li>
                 <li><strong>Record title</strong> — the headword/label, written to <code>&lt;title level="a"&gt;</code>,</li>
                 <li><strong>Editor</strong> — the responsible team member, chosen from <code>BA.config.editors</code>,</li>
                 <li><strong>Status</strong> — <code>unpublished</code>, <code>draft</code>, or <code>published</code>,</li>

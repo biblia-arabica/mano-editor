@@ -712,13 +712,13 @@
   }
 
   function wireStaticFields() {
-    var idInput = document.querySelector('#workForm [name="recordId"]');
-    if (idInput) idInput.addEventListener("input", updateUriDisplay);
+    // Record ID is read-only (assigned by the editor); nothing to wire.
   }
 
   // Populate the shared Record block from a parsed header (identical logic in
   // all four editors). Record ID is recovered from the header idno, else the
-  // uploaded filename; returns a warning string when neither yields an id.
+  // uploaded filename; when neither yields an id the next free id is assigned
+  // and a notice string is returned.
   function applyRecordBlock(hdr, filename) {
     var form = document.getElementById("workForm");
     function set(name, val) { var el = form.querySelector('[name="' + name + '"]'); if (el) el.value = val; }
@@ -729,7 +729,14 @@
     var recId = hdr.recordId || fileId;
     set("recordId", recId);
     updateUriDisplay();
-    return recId ? "" : "Record ID could not be recovered — set it manually before download.";
+    if (recId) return "";
+    // No id in the file: treat it as a new record and assign the next free id
+    // (only if nothing else — e.g. a legacy body xml:id — filled it meanwhile).
+    window.BA.authority.nextId("work").then(function (id) {
+      var el = form.querySelector('[name="recordId"]');
+      if (el && !el.value) { el.value = id; updateUriDisplay(); }
+    });
+    return "No record ID found in the file — it was assigned the next free ID as a new record.";
   }
 
   function showPreview() {
