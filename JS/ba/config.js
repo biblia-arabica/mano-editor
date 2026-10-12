@@ -20,6 +20,11 @@ window.BA = {
     },
     indexPath: "https://raw.githubusercontent.com/biblia-arabica/manuscript-data/main/index", // relative URL: index/index-person.json etc.
 
+    // Base URL for record files listed in the index ("data/works/1.xml" etc.).
+    // Empty => derived from repoUrl + github.branch, i.e.
+    // https://raw.githubusercontent.com/biblia-arabica/manuscript-data/main
+    dataBaseUrl: "",
+
     // Live index rebuild. When enabled, authority lookups rebuild the
     // relevant index client-side from the repository's data/ folder (one GitHub
     // contents listing + one fetch per record, cached for ttlMs), instead of the

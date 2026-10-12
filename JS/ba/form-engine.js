@@ -447,7 +447,7 @@
         if (String(records[i].id) === String(id)) { rec = records[i]; break; }
       }
       if (!rec) return;
-      fetch(rec.file)
+      fetch(window.BA.authority.fileUrl(rec.file))
         .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
         .then(function (text) {
           onPick(text, (rec.file || "").split("/").pop());
@@ -457,7 +457,7 @@
         .catch(function (err) {
           row.insertAdjacentHTML("afterend",
             '<div class="list-group-item text-danger repo-picker-error">Could not load ' +
-            esc(rec.file) + ": " + esc(err.message) + "</div>");
+            esc(window.BA.authority.fileUrl(rec.file)) + ": " + esc(err.message) + "</div>");
         });
     };
 

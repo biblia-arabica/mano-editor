@@ -38,6 +38,25 @@
 
   // Public entry: route to the live-rebuild path or the prebuilt-index path.
   // Never rejects. Concurrent calls share one in-flight promise (per path).
+  // Absolute URL of a record file. Index records carry repo-relative paths
+  // ("data/works/1.xml"); a bare fetch() would resolve them against the site
+  // hosting the editor (mano-editor) instead of the data repository. They are
+  // resolved against BA.config.dataBaseUrl, or — when unset — the raw-file URL
+  // of BA.config.repoUrl on BA.config.github.branch. Absolute URLs pass through.
+  authority.dataBaseUrl = function () {
+    var cfg = window.BA.config;
+    if (cfg.dataBaseUrl) return cfg.dataBaseUrl.replace(/\/+$/, "");
+    var m = (cfg.repoUrl || "").match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!m) return "";
+    var branch = (cfg.github && cfg.github.branch) || "main";
+    return "https://raw.githubusercontent.com/" + m[1] + "/" + m[2].replace(/\.git$/, "") + "/" + branch;
+  };
+  authority.fileUrl = function (file) {
+    if (!file || /^[a-z]+:\/\//i.test(file)) return file;
+    var base = authority.dataBaseUrl();
+    return base ? base + "/" + file.replace(/^\/+/, "") : file;
+  };
+
   authority.load = function (type) {
     return liveEnabled() ? loadLive(type) : loadPrebuilt(type);
   };
