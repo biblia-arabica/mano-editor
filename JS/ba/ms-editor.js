@@ -207,10 +207,12 @@
       '<div class="altid-container"></div>' + addBtn("addAltIdBtn", "Add alternate identifier");
   }
 
-  // Content has two cataloguing modes (see contentMode / setContentMode):
-  //   Basic    — pick works from the hierarchical work list (BA.msBasic);
-  //              exports one <msItem><title ref/></msItem> per work.
-  //   Advanced — the detailed text-unit description below.
+  // Content has two cataloguing modes (see contentMode / switchContentMode):
+  //   Basic    — content summary + works picked from the hierarchical work
+  //              list (BA.msBasic); exports <summary> and one
+  //              <msItem><title ref/></msItem> per work.
+  //   Advanced — content summary + the detailed text-unit description below.
+  // The summary field is shared, so switching never touches it.
   function fContent() {
     return '<div class="ba-content-mode mb-3">' +
       '<div class="btn-group btn-group-sm" role="group" aria-label="Cataloguing mode">' +
@@ -221,10 +223,11 @@
       "</div>" +
       '<div class="form-text cont-mode-hint mt-1"></div>' +
       "</div>" +
-      '<div class="cont-pane-basic d-none">' + window.BA.msBasic.paneHtml() + "</div>" +
-      '<div class="cont-pane-advanced d-none">' +
+      // Content summary: shared by both modes.
       row(col(12, labelHtml("content-description", "summary") + textarea("cont-summary"))) +
       row(col(4, '<label class="form-label">Language</label>' + langSelect("cont-summary-lang"))) +
+      '<div class="cont-pane-basic d-none">' + window.BA.msBasic.paneHtml() + "</div>" +
+      '<div class="cont-pane-advanced d-none">' +
       "<h6>" + esc(L("content-description", "msItem").label) + "</h6>" +
       '<div class="msitems-container"></div>' + addBtn("addMsItemBtn", "Add text unit") +
       "</div>";
@@ -233,7 +236,7 @@
   // ---------- content mode (Basic / Advanced) ----------
 
   var MODE_HINT = {
-    basic: "Basic: select the works this manuscript contains. Each becomes a text unit with its title only.",
+    basic: "Basic: write a content summary and select the works this manuscript contains. Each work becomes a text unit with its title only.",
     advanced: "Advanced: describe each text unit in detail (locus, title, author, language, incipit, explicit, note)."
   };
   var contMode = "advanced";
@@ -258,8 +261,7 @@
     if (r) r.checked = true;
   }
 
-  // Empties the text-unit blocks. The summary is left alone: switching to Basic
-  // requires it to be empty already, and Basic never fills it.
+  // Empties the text-unit blocks. The summary is shared by both modes and stays.
   function clearAdvancedContents() {
     var c = container("msitems-container");
     if (c) c.innerHTML = "";
@@ -268,7 +270,8 @@
 
   // Interactive switch, triggered by the mode radios. Basic -> Advanced always
   // works (each work becomes a text unit with its title). Advanced -> Basic only
-  // when the text units hold nothing but one listed work title each.
+  // when the text units hold nothing but one listed work title each (the
+  // summary may be filled in either mode).
   function switchContentMode(target) {
     if (target === contMode) return;
     var B = window.BA.msBasic;
@@ -744,11 +747,11 @@
         }).filter(function (a) { return a.type || a.idno; })
       },
 
-      // Basic mode: no summary; msItems come from the work selection in the
-      // same shape as Advanced blocks (buildMsContents serialises both alike).
+      // Summary is shared by both modes. In Basic mode msItems come from the
+      // work selection in the same shape as Advanced blocks (buildMsContents
+      // serialises both alike).
       contentMode: contMode,
-      summary: contMode === "basic" ? "" : fieldClass("cont-summary"),
-      summaryLang: contMode === "basic" ? "" : fieldClass("cont-summary-lang"),
+      summary: fieldClass("cont-summary"), summaryLang: fieldClass("cont-summary-lang"),
       msItems: contMode === "basic" ? window.BA.msBasic.msItems() : blocks("msitems-container").map(function (b) {
         return {
           xmlid: b.dataset.xmlid, cls: F.val(b, "mi-class"),
@@ -1226,25 +1229,27 @@
     captureExtras(mi, "msIdentifier", ["country", "settlement", "repository", "collection", "idno", "altIdentifier", "msName"]);
   }
 
-  // Content mode on import: a record whose msContents holds only Basic-shaped
-  // fragments (<msItem xml:id><title ref="…/work/N">…</title></msItem>, works
-  // from the work list) opens in Basic, and the user may switch to Advanced.
-  // Anything else opens in Advanced only. An empty msContents keeps the
-  // configured default mode.
+  // Content mode on import: a record whose msContents holds only an optional
+  // <summary> plus Basic-shaped fragments (<msItem xml:id><title ref="…/work/N">
+  // …</title></msItem>, works from the work list) opens in Basic, and the user
+  // may switch to Advanced. Anything else opens in Advanced only. A record with
+  // no text units keeps the configured default mode.
   function importMsContents(msDesc) {
     var mc = directChild(msDesc, "msContents");
     var basic = window.BA.msBasic.checkDom(mc);
+    if (mc) {
+      var summary = directChild(mc, "summary");
+      setVal("cont-summary", R.innerXml(summary)); setVal("cont-summary-lang", attr(summary, "xml:lang"));
+    }
     if (basic.ok && basic.items.length) {
       window.BA.msBasic.setItems(basic.items);
       showMode("basic");
-      setModeHint("This record lists works only, so it opened in Basic mode. You can continue in Basic or switch to Advanced.", "success");
+      setModeHint("This record has only a content summary and a list of works, so it opened in Basic mode. You can continue in Basic or switch to Advanced.", "success");
       return;
     }
-    if (!mc || basic.ok) return; // empty msContents: keep the default mode
+    if (!mc || basic.ok) return; // no text units: keep the default mode
     showMode("advanced");
-    setModeHint("This record describes its text units in detail (" + basic.reason + "), so only Advanced mode is available.");
-    var summary = directChild(mc, "summary");
-    setVal("cont-summary", R.innerXml(summary)); setVal("cont-summary-lang", attr(summary, "xml:lang"));
+    setModeHint("This record contains more than Basic mode can show (" + basic.reason + "), so only Advanced mode is available.");
     directChildren(mc, "msItem").forEach(function (item) {
       var block = addMsItemBlock();
       if (item.getAttribute("xml:id")) block.dataset.xmlid = item.getAttribute("xml:id");
@@ -1712,7 +1717,7 @@
         showAlert("Record " + id + " not found in the manuscript index — rebuild the index if the file was just added", "warning");
         return;
       }
-      fetch(rec.file)
+      fetch(window.BA.authority.fileUrl(rec.file))
         .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
         .then(function (text) { importMsXML(text, (rec.file || "").split("/").pop()); F.markClean(); })
         .catch(function (err) { showAlert("Could not load record " + id + ": " + err.message, "danger"); });
@@ -1733,7 +1738,7 @@
         showAlert("Record " + id + " not found in the manuscript index — rebuild the index if the file was just added", "warning");
         return;
       }
-      fetch(rec.file)
+      fetch(window.BA.authority.fileUrl(rec.file))
         .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
         .then(function (text) {
           F._viewMode = true;

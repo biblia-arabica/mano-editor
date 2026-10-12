@@ -601,3 +601,4 @@ jinn-tap tei-emph[rend="italic"] { font-style: italic; }
 .ba-worktree .form-check { min-height: 1.4rem; }
 /* View mode: show only the resulting list of works and the active mode. */
 body.view-mode .ba-worktree-wrap, body.view-mode .ba-sel-actions, body.view-mode .cont-mode-hint { display: none !important; }
+.ba-basic-selected > .ba-basic-empty::before { content: none; } /* no "1." on the empty-state line */
