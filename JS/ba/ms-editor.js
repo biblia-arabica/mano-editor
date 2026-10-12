@@ -1712,7 +1712,7 @@
         showAlert("Record " + id + " not found in the manuscript index — rebuild the index if the file was just added", "warning");
         return;
       }
-      fetch(window.BA.authority.fileUrl(rec.file))
+      fetch(rec.file)
         .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
         .then(function (text) { importMsXML(text, (rec.file || "").split("/").pop()); F.markClean(); })
         .catch(function (err) { showAlert("Could not load record " + id + ": " + err.message, "danger"); });
@@ -1733,7 +1733,7 @@
         showAlert("Record " + id + " not found in the manuscript index — rebuild the index if the file was just added", "warning");
         return;
       }
-      fetch(window.BA.authority.fileUrl(rec.file))
+      fetch(rec.file)
         .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.text(); })
         .then(function (text) {
           F._viewMode = true;

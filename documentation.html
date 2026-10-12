@@ -332,11 +332,12 @@
               </ul>
               <p>It maps onto TEI elements <code>&lt;msContents&gt;</code>, <code>&lt;msItem&gt;</code>, and related components.</p>
               <p><strong>Basic and Advanced mode.</strong> The Content section offers two cataloguing modes.
-                <em>Basic</em> only lets you tick works in the hierarchical work list (<code>JS/ba/work-hierarchy.js</code>) and order them;
+                Both modes share the <em>Content summary</em> field (<code>&lt;summary&gt;</code>).
+                <em>Basic</em> otherwise only lets you tick works in the hierarchical work list (<code>JS/ba/work-hierarchy.js</code>) and order them;
                 each selected work is exported as <code>&lt;msItem xml:id="msitem-1"&gt;&lt;title ref="https://biblia-arabica.com/work/1"&gt;Genesis (Bereshit)&lt;/title&gt;&lt;/msItem&gt;</code>.
                 <em>Advanced</em> is the detailed text-unit description listed above. You can switch from Basic to Advanced at any time; your selected works become text units.
-                You can switch back to Basic only while every text unit has nothing but one title from the work list.
-                A record whose <code>&lt;msContents&gt;</code> holds only such fragments opens in Basic mode (you can switch to Advanced); a record with any other content opens in Advanced mode only.
+                You can switch back to Basic only while every text unit has nothing but one title from the work list (the summary may stay filled in).
+                A record whose <code>&lt;msContents&gt;</code> holds only a summary and such fragments opens in Basic mode (you can switch to Advanced); a record with any other content opens in Advanced mode only.
                 The mode for new records is set by <code>BA.config.msContentsDefaultMode</code>.</p>
               <p>Author and work information can optionally be aligned with authority data from Wikidata,
                 enabling links between the manuscript description and external information about people, works, or traditions.

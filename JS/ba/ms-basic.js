@@ -2,7 +2,8 @@
 //
 // Basic mode catalogues a manuscript's contents as a plain list of works picked
 // from the hierarchical work list (BA.workHierarchy, JS/ba/work-hierarchy.js).
-// Each selected work becomes exactly one fragment in msContents:
+// The content summary (<summary>) is shared with Advanced mode and lives in
+// ms-editor.js. Each selected work becomes exactly one fragment in msContents:
 //
 //   <msItem xml:id="msitem-1"><title ref="{baseUri}/work/1">Genesis (Bereshit)</title></msItem>
 //
@@ -246,15 +247,21 @@
 
   function fail(reason) { return { ok: false, reason: reason }; }
 
-  // On import: msContents (a DOM element, may be null) may only hold msItem
-  // fragments of the Basic shape. An empty or missing msContents is compatible
-  // (items: []).
+  // On import: msContents (a DOM element, may be null) may only hold one
+  // optional <summary> (any content, @xml:lang only) plus msItem fragments of
+  // the Basic shape. An empty or missing msContents is compatible (items: []).
   function checkDom(mc) {
     if (!mc) return { ok: true, items: [] };
-    var out = [], seen = {};
+    var out = [], seen = {}, summaries = 0;
     var kids = Array.prototype.slice.call(mc.children);
     for (var i = 0; i < kids.length; i++) {
       var k = kids[i];
+      if (k.localName === "summary") {
+        if (++summaries > 1) return fail("msContents has more than one summary");
+        var sAttr = Array.prototype.filter.call(k.attributes, function (a) { return a.name !== "xml:lang"; });
+        if (sAttr.length) return fail("the summary carries @" + sAttr[0].name);
+        continue;
+      }
       if (k.localName !== "msItem") return fail("msContents contains <" + k.localName + ">");
       var extraAttr = Array.prototype.filter.call(k.attributes, function (a) { return a.name !== "xml:id"; });
       if (extraAttr.length) return fail("a text unit carries @" + extraAttr[0].name);
@@ -277,12 +284,12 @@
     return { ok: true, items: out };
   }
 
-  // On switching Advanced -> Basic: the form data (getMsData) must hold nothing
-  // beyond one project work title per text unit. Fully empty blocks are ignored.
+  // On switching Advanced -> Basic: the text units (getMsData().msItems) must
+  // hold nothing beyond one project work title each; the summary is shared by
+  // both modes and not checked. Fully empty blocks are ignored.
   // `extras` = raw unmapped msContents children preserved from import.
   function checkData(d, extras) {
     if ((extras || []).length) return fail("the record has msContents elements the form does not show");
-    if (d.summary) return fail("a contents summary is filled in");
     var out = [], seen = {};
     for (var i = 0; i < d.msItems.length; i++) {
       var m = d.msItems[i], n = i + 1;
