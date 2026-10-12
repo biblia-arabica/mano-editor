@@ -589,3 +589,15 @@ jinn-tap tei-emph[rend="italic"] { font-style: italic; }
 .rich-h1 { font-size: 1.3em; font-weight: 600; }
 .rich-h2 { font-size: 1.15em; font-weight: 600; }
 .rich-h3 { font-size: 1.05em; font-weight: 600; }
+
+/* -- Manuscript Editor, Content section: Basic mode work picker (ms-basic.js) -- */
+.ba-worktree { max-height: 22rem; overflow-y: auto; background: var(--bs-body-bg); }
+.ba-worktree .ba-wt-children { padding-left: 1.4rem; margin-bottom: 0; }
+.ba-wt-node.ba-wt-collapsed > .ba-wt-children { display: none; }
+.ba-wt-toggle { width: 1.1rem; line-height: 1; color: var(--bs-secondary-color); text-decoration: none; }
+.ba-wt-toggle .bi { display: inline-block; transition: transform .15s; }
+.ba-wt-node:not(.ba-wt-collapsed) > div > .ba-wt-toggle .bi { transform: rotate(90deg); }
+.ba-wt-spacer { display: inline-block; width: 1.1rem; }
+.ba-worktree .form-check { min-height: 1.4rem; }
+/* View mode: show only the resulting list of works and the active mode. */
+body.view-mode .ba-worktree-wrap, body.view-mode .ba-sel-actions, body.view-mode .cont-mode-hint { display: none !important; }

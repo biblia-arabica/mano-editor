@@ -2,6 +2,8 @@
 // to templates/full-mss-template.xml. msDesc lives in text/body/listBibl/msDesc.
 // All person/place/work references use local-* autocomplete only.
 // Renders its accordion form from BA.uiText.
+// The Content section has Basic (work list, JS/ba/ms-basic.js) and Advanced
+// (detailed text units) cataloguing modes.
 // Exposes window.MsEditor for wiring and tests.
 
 (function () {
@@ -205,11 +207,98 @@
       '<div class="altid-container"></div>' + addBtn("addAltIdBtn", "Add alternate identifier");
   }
 
+  // Content has two cataloguing modes (see contentMode / setContentMode):
+  //   Basic    — pick works from the hierarchical work list (BA.msBasic);
+  //              exports one <msItem><title ref/></msItem> per work.
+  //   Advanced — the detailed text-unit description below.
   function fContent() {
-    return row(col(12, labelHtml("content-description", "summary") + textarea("cont-summary"))) +
+    return '<div class="ba-content-mode mb-3">' +
+      '<div class="btn-group btn-group-sm" role="group" aria-label="Cataloguing mode">' +
+      '<input type="radio" class="btn-check cont-mode" name="contMode" id="contModeBasic" value="basic" autocomplete="off">' +
+      '<label class="btn btn-outline-primary" for="contModeBasic">Basic</label>' +
+      '<input type="radio" class="btn-check cont-mode" name="contMode" id="contModeAdvanced" value="advanced" autocomplete="off">' +
+      '<label class="btn btn-outline-primary" for="contModeAdvanced">Advanced</label>' +
+      "</div>" +
+      '<div class="form-text cont-mode-hint mt-1"></div>' +
+      "</div>" +
+      '<div class="cont-pane-basic d-none">' + window.BA.msBasic.paneHtml() + "</div>" +
+      '<div class="cont-pane-advanced d-none">' +
+      row(col(12, labelHtml("content-description", "summary") + textarea("cont-summary"))) +
       row(col(4, '<label class="form-label">Language</label>' + langSelect("cont-summary-lang"))) +
       "<h6>" + esc(L("content-description", "msItem").label) + "</h6>" +
-      '<div class="msitems-container"></div>' + addBtn("addMsItemBtn", "Add text unit");
+      '<div class="msitems-container"></div>' + addBtn("addMsItemBtn", "Add text unit") +
+      "</div>";
+  }
+
+  // ---------- content mode (Basic / Advanced) ----------
+
+  var MODE_HINT = {
+    basic: "Basic: select the works this manuscript contains. Each becomes a text unit with its title only.",
+    advanced: "Advanced: describe each text unit in detail (locus, title, author, language, incipit, explicit, note)."
+  };
+  var contMode = "advanced";
+
+  function contentMode() { return contMode; }
+
+  function setModeHint(text, kind) {
+    var h = document.querySelector(FORM + " .cont-mode-hint");
+    if (!h) return;
+    h.className = "form-text cont-mode-hint mt-1" + (kind ? " text-" + kind : "");
+    h.textContent = text || MODE_HINT[contMode];
+  }
+
+  // Show the pane for `mode` and sync the radios. Does not move data.
+  function showMode(mode) {
+    contMode = mode === "basic" ? "basic" : "advanced";
+    var form = document.querySelector(FORM);
+    if (!form) return;
+    form.querySelector(".cont-pane-basic").classList.toggle("d-none", contMode !== "basic");
+    form.querySelector(".cont-pane-advanced").classList.toggle("d-none", contMode !== "advanced");
+    var r = form.querySelector('.cont-mode[value="' + contMode + '"]');
+    if (r) r.checked = true;
+  }
+
+  // Empties the text-unit blocks. The summary is left alone: switching to Basic
+  // requires it to be empty already, and Basic never fills it.
+  function clearAdvancedContents() {
+    var c = container("msitems-container");
+    if (c) c.innerHTML = "";
+    idCounters.msitem = 0;
+  }
+
+  // Interactive switch, triggered by the mode radios. Basic -> Advanced always
+  // works (each work becomes a text unit with its title). Advanced -> Basic only
+  // when the text units hold nothing but one listed work title each.
+  function switchContentMode(target) {
+    if (target === contMode) return;
+    var B = window.BA.msBasic;
+    if (target === "advanced") {
+      var sel = B.getItems();
+      clearAdvancedContents();
+      sel.forEach(function (it) {
+        var block = addMsItemBlock();
+        block.dataset.xmlid = it.xmlid;
+        var m = /^msitem-(\d+)$/.exec(it.xmlid || "");
+        if (m) idCounters.msitem = Math.max(idCounters.msitem, +m[1]);
+        var t = addSubTo(block, "mi-title");
+        setLodB(t, "mi-work", B.label(it.id), B.uriFor(it.id), "work");
+      });
+      B.setItems([]);
+      showMode("advanced");
+      setModeHint();
+    } else {
+      var res = B.checkData(getMsData(), importExtras.msContents);
+      if (!res.ok) {
+        showMode("advanced");
+        setModeHint("Basic mode is not available: " + res.reason + ". Remove these details to use Basic mode.", "danger");
+        return;
+      }
+      clearAdvancedContents();
+      B.setItems(res.items);
+      showMode("basic");
+      setModeHint();
+    }
+    F._dirty = true;
   }
 
   function fCodicological() {
@@ -351,6 +440,10 @@
     acc += "</div>";
 
     document.getElementById("msFormContainer").innerHTML = meta + acc;
+
+    window.BA.msBasic.setItems([]);
+    showMode(window.BA.config.msContentsDefaultMode || "basic");
+    setModeHint();
   }
 
   // ---------- rich-text (Round 6, W02) ----------
@@ -651,8 +744,12 @@
         }).filter(function (a) { return a.type || a.idno; })
       },
 
-      summary: fieldClass("cont-summary"), summaryLang: fieldClass("cont-summary-lang"),
-      msItems: blocks("msitems-container").map(function (b) {
+      // Basic mode: no summary; msItems come from the work selection in the
+      // same shape as Advanced blocks (buildMsContents serialises both alike).
+      contentMode: contMode,
+      summary: contMode === "basic" ? "" : fieldClass("cont-summary"),
+      summaryLang: contMode === "basic" ? "" : fieldClass("cont-summary-lang"),
+      msItems: contMode === "basic" ? window.BA.msBasic.msItems() : blocks("msitems-container").map(function (b) {
         return {
           xmlid: b.dataset.xmlid, cls: F.val(b, "mi-class"),
           loci: subEntries(b, "mi-locus").map(function (it) { return { from: F.val(it, "mi-locus-from"), to: F.val(it, "mi-locus-to") }; }).filter(function (l) { return l.from || l.to; }),
@@ -1129,9 +1226,23 @@
     captureExtras(mi, "msIdentifier", ["country", "settlement", "repository", "collection", "idno", "altIdentifier", "msName"]);
   }
 
+  // Content mode on import: a record whose msContents holds only Basic-shaped
+  // fragments (<msItem xml:id><title ref="…/work/N">…</title></msItem>, works
+  // from the work list) opens in Basic, and the user may switch to Advanced.
+  // Anything else opens in Advanced only. An empty msContents keeps the
+  // configured default mode.
   function importMsContents(msDesc) {
     var mc = directChild(msDesc, "msContents");
-    if (!mc) return;
+    var basic = window.BA.msBasic.checkDom(mc);
+    if (basic.ok && basic.items.length) {
+      window.BA.msBasic.setItems(basic.items);
+      showMode("basic");
+      setModeHint("This record lists works only, so it opened in Basic mode. You can continue in Basic or switch to Advanced.", "success");
+      return;
+    }
+    if (!mc || basic.ok) return; // empty msContents: keep the default mode
+    showMode("advanced");
+    setModeHint("This record describes its text units in detail (" + basic.reason + "), so only Advanced mode is available.");
     var summary = directChild(mc, "summary");
     setVal("cont-summary", R.innerXml(summary)); setVal("cont-summary-lang", attr(summary, "xml:lang"));
     directChildren(mc, "msItem").forEach(function (item) {
@@ -1533,6 +1644,14 @@
       if (delSubBtn) { var it = delSubBtn.closest(".sublist-item"); if (it) it.remove(); }
     });
 
+    // Content mode radios (Basic / Advanced) + Basic work picker.
+    window.BA.msBasic.wire();
+    document.addEventListener("change", function (e) {
+      if (!e.target.classList || !e.target.classList.contains("cont-mode")) return;
+      if (F.isViewMode()) return;
+      switchContentMode(e.target.value);
+    });
+
     // Zotero bibliography lookup -> fill title + ptr, clear the lookup.
     document.addEventListener("ba-lod-selected", fillBiblFromZotero);
     document.addEventListener("ba-lod-selected", fillJoinPtrFromLookup);
@@ -1677,6 +1796,7 @@
     buildPhysDesc: function (d) { return buildPhysDesc(d); },
     buildHistory: function (d) { return buildHistory(d); },
     buildAdditional: function (d) { return buildAdditional(d); },
+    contentMode: contentMode, switchContentMode: switchContentMode,
     addAltIdBlock: addAltIdBlock, addMsItemBlock: addMsItemBlock, addJoinBlock: addJoinBlock,
     addLayoutBlock: addLayoutBlock, addScriptBlock: addScriptBlock, addHandBlock: addHandBlock,
     addDecoBlock: addDecoBlock, addAdditionBlock: addAdditionBlock, addAccMatBlock: addAccMatBlock,

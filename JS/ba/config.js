@@ -55,6 +55,12 @@ window.BA = {
       citationStyle: "chicago-fullnote-bibliography"
     },
 
+    // Manuscript Editor, "Content" section: cataloguing mode for a new record
+    // (and for an uploaded record with an empty msContents). "basic" = pick
+    // works from the work list (JS/ba/work-hierarchy.js); "advanced" = the
+    // detailed text-unit description.
+    msContentsDefaultMode: "basic",
+
     // Team list for the shared teiHeader and revisionDesc/change/@who.
     // refs copied from the editor elements in templates/persons-fulltemplate.xml.
     editors: [
