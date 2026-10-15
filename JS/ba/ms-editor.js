@@ -1254,9 +1254,16 @@
       var block = addMsItemBlock();
       if (item.getAttribute("xml:id")) block.dataset.xmlid = item.getAttribute("xml:id");
       setB(block, "mi-class", item.getAttribute("class"));
-      directChildren(item, "locus").forEach(function (loc) { // direct children only — not incipit/explicit locus
+      // Accept loci directly in msItem and inside TEI locusGrp.
+      // Incipit and explicit loci are handled separately below.
+      directChildren(item, "locus").concat(
+        directChildren(item, "locusGrp").reduce(function (all, grp) {
+          return all.concat(directChildren(grp, "locus"));
+        }, [])
+      ).forEach(function (loc) {
         var it = addSubTo(block, "mi-locus");
-        setB(it, "mi-locus-from", attr(loc, "from")); setB(it, "mi-locus-to", attr(loc, "to"));
+        setB(it, "mi-locus-from", attr(loc, "from"));
+        setB(it, "mi-locus-to", attr(loc, "to"));
       });
       directChildren(item, "title").forEach(function (title) {
         var it = addSubTo(block, "mi-title");
@@ -1270,10 +1277,25 @@
       });
       var tl = directChild(item, "textLang");
       if (tl) { setB(block, "mi-mainlang", attr(tl, "mainLang")); setMultiB(block, "mi-otherlangs", splitSpace(attr(tl, "otherLangs"))); }
+      // Import both text-only and quote-wrapped TEI incipits/explicits.
       var inc = directChild(item, "incipit");
-      if (inc) { var il = directChild(inc, "locus"); setB(block, "mi-inc-from", attr(il, "from")); setB(block, "mi-inc-to", attr(il, "to")); var iq = directChild(inc, "quote"); setB(block, "mi-inc-quote", R.innerXml(iq)); setB(block, "mi-inc-lang", attr(iq, "xml:lang")); }
+      if (inc) {
+        var il = directChild(inc, "locus");
+        var iq = directChild(inc, "quote");
+        setB(block, "mi-inc-from", attr(il, "from"));
+        setB(block, "mi-inc-to", attr(il, "to"));
+        setB(block, "mi-inc-quote", R.innerXml(iq || inc));
+        setB(block, "mi-inc-lang", attr(iq || inc, "xml:lang"));
+      }
       var exp = directChild(item, "explicit");
-      if (exp) { var el2 = directChild(exp, "locus"); setB(block, "mi-exp-from", attr(el2, "from")); setB(block, "mi-exp-to", attr(el2, "to")); var eq = directChild(exp, "quote"); setB(block, "mi-exp-quote", R.innerXml(eq)); setB(block, "mi-exp-lang", attr(eq, "xml:lang")); }
+      if (exp) {
+        var el2 = directChild(exp, "locus");
+        var eq = directChild(exp, "quote");
+        setB(block, "mi-exp-from", attr(el2, "from"));
+        setB(block, "mi-exp-to", attr(el2, "to"));
+        setB(block, "mi-exp-quote", R.innerXml(eq || exp));
+        setB(block, "mi-exp-lang", attr(eq || exp, "xml:lang"));
+      }
       var note = directChild(item, "note");
       setB(block, "mi-note", R.innerXml(note)); setB(block, "mi-note-lang", attr(note, "xml:lang"));
     });
